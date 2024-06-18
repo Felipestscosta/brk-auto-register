@@ -4,6 +4,7 @@
 
 *{
   transition:  all ease-in-out .4s;
+  outline: none;
 }
 
 :root {
