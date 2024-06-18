@@ -1,15 +1,18 @@
 "use client";
-
 import { writeFileXLSX, utils } from "xlsx";
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import axios from "axios";
+
+import Image from "next/image";
+import { CircleNotch } from "@phosphor-icons/react";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
   titulo: string;
   estoque: string;
   preco: string;
+  imagens: any;
 
   tamanho_masculino: string;
   tamanho_feminino: string;
@@ -153,6 +156,7 @@ const precos = {
 export default function Home() {
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
+  const [carregando, setCarregando] = useState(false);
 
   //Caputura do Formulário
   const {
@@ -162,10 +166,46 @@ export default function Home() {
     formState: { errors },
   } = useForm<esquemaDeDadosFormulario>();
 
-  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = (data) => {
+  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (data) => {
+    setCarregando(true);
+
+    // Processamento das Imagens
+    let todasAsImagens = [];
+    var imagensMasculinas: any = [];
+    var imagensFemininas: any = [];
+    var imagensInfantis: any = [];
+
+    for (let i = 0; i < data.imagens.length; i++) {
+      // formData.append(`imagens`, data.imagens[i]);
+      const file = data.imagens[i];
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "ml_default");
+
+      try {
+        const response = await axios.post(
+          "https://api.cloudinary.com/v1_1/daruxsllg/image/upload",
+          formData
+        );
+
+        if (file.name.toLowerCase().includes("masc"))
+          imagensMasculinas.push(response.data.secure_url);
+
+        if (file.name.toLowerCase().includes("fem"))
+          imagensFemininas.push(response.data.secure_url);
+
+        if (file.name.toLowerCase().includes("inf"))
+          imagensInfantis.push(response.data.secure_url);
+
+        todasAsImagens.push(response.data.secure_url);
+      } catch (error) {
+        console.error("Erro no Upload da Imagem: ", error);
+      }
+    }
+
+    //Infomações da Planilha
     var preco = parseFloat(data.preco);
     var estoque = parseInt(data.estoque);
-
     const primeiraLinhaDaPlanilha = [
       {
         codigo: data.codigo.toLocaleUpperCase(),
@@ -175,9 +215,9 @@ export default function Home() {
         produto_variacao: "Produto",
         tipo_producao: "Terceiros", // backlog Bling 1
         tipo_do_item: "Mercadoria para Revenda",
-        codigo_pai: data.codigo.toLocaleUpperCase(),
+        codigo_pai: "",
         marca: "Brk Agro", // backlog Loja
-        url_imagens_externas: "", //backlog clodinary
+        url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
       },
     ];
 
@@ -196,7 +236,7 @@ export default function Home() {
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
             marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: "", //backlog clodinary
+            url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary
           });
         });
       }
@@ -213,7 +253,7 @@ export default function Home() {
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
             marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: "", //backlog clodinary
+            url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary
           });
         });
       }
@@ -230,17 +270,22 @@ export default function Home() {
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
             marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: "", //backlog clodinary
+            url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary
           });
         });
       }
     }
 
-    geraPlanilha(variacaoDeProduto);
+    try {
+      geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+    } catch (error) {
+      alert("Opa, houve um problema na geração da planilha. Chama o dev 😒");
+      setCarregando(false);
+    }
   };
 
   // Planinha
-  async function geraPlanilha(dadosDaPlanilha: any) {
+  async function geraPlanilha(dadosDaPlanilha: any, codigoProduto: string) {
     const rows = Array.from(dadosDaPlanilha).map((row: any) => ({
       ID: "",
       Código: row.codigo, // Dinâmico
@@ -277,7 +322,7 @@ export default function Home() {
       "Tipo do item": row.tipo_do_item, // Dinâmico
       "Grupo de Tags/Tags": "",
       Tributos: "0",
-      "Código Pai": row.codigo, // Dinâmico
+      "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": "0",
       "Grupo de produtos": "",
       Marca: row.marca, // Dinâmico
@@ -307,7 +352,9 @@ export default function Home() {
 
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, "");
-    writeFileXLSX(workbook, "cadastro-produtos.xlsx", { compression: true });
+    writeFileXLSX(workbook, `${codigoProduto}.xlsx`, { compression: true });
+
+    setCarregando(false);
   }
 
   //geraPlanilha();
@@ -367,7 +414,6 @@ export default function Home() {
         <div className="flex">
           <form
             className="flex flex-col justify-center items-center gap-10"
-            encType=""
             onSubmit={handleSubmit(onSubmit)}
           >
             {tipoDeProduto === "camisa" && (
@@ -379,9 +425,10 @@ export default function Home() {
                   <input
                     className="cursor-pointer"
                     type="file"
-                    name=""
                     id="imagens"
                     multiple
+                    required
+                    {...register("imagens")}
                   />
                 </label>
 
@@ -393,6 +440,7 @@ export default function Home() {
                       id="codigo"
                       type="text"
                       placeholder="Ex: C0..."
+                      required
                       {...register("codigo")}
                       defaultValue={`C0`}
                     />
@@ -404,6 +452,7 @@ export default function Home() {
                       id="titulo"
                       type="text"
                       placeholder="Ex: Camisa Agro Brk..."
+                      required
                       {...register("titulo")}
                       defaultValue={`Camisa Agro Brk `}
                     />
@@ -415,6 +464,7 @@ export default function Home() {
                       id="estoque"
                       type="text"
                       placeholder="Ex: C0..."
+                      required
                       defaultValue={10000}
                       {...register("estoque")}
                     />
@@ -426,6 +476,7 @@ export default function Home() {
                       id="preco"
                       type="text"
                       defaultValue={precos.camisa}
+                      required
                       {...register("preco")}
                     />
                   </label>
@@ -475,7 +526,7 @@ export default function Home() {
 
             {tipoDeProduto === "camiseta" && (
               <>
-                <input type="file" name="" id="" multiple />
+                <input type="file" id="" multiple {...register("imagens")} />
 
                 <div className="flex gap-4 mb-16">
                   <label className="flex flex-col gap-2" htmlFor="codigo">
@@ -724,9 +775,19 @@ export default function Home() {
               <div className="flex container items-center justify-center mt-32 pt-10 py-2 px-10 border-t border-zinc-800">
                 <button
                   type="submit"
-                  className="py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg"
+                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg ${
+                    carregando &&
+                    "pointer-events-none cursor-not-allowed opacity-5"
+                  }`}
                 >
-                  Gerar Planilha
+                  {carregando ? (
+                    <span className="flex justify-center items-center">
+                      <CircleNotch size={20} className="animate-spin mr-4" />
+                      Processando...
+                    </span>
+                  ) : (
+                    "Gerar Planilha"
+                  )}
                 </button>
               </div>
             )}
