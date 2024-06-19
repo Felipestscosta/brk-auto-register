@@ -5,7 +5,15 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import axios from "axios";
 
 import Image from "next/image";
-import { CircleNotch } from "@phosphor-icons/react";
+import {
+  Barn,
+  BaseballCap,
+  CircleNotch,
+  FishSimple,
+  Hoodie,
+  Motorcycle,
+  TShirt,
+} from "@phosphor-icons/react";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -18,9 +26,9 @@ type esquemaDeDadosFormulario = {
   tamanho_feminino: string;
   tamanho_infantil: string;
 
-  cor_masculino: string;
-  cor_feminino: string;
-  cor_infantil: string;
+  cor_branco: string;
+  cor_preto: string;
+  cor_azul: string;
 };
 
 const relacaoDeTamanhos = [
@@ -135,13 +143,88 @@ const relacaoDeTamanhos = [
 const relacaoDeCores = [
   {
     branco: {
-      tamanhos: ["PP", "P", "M", "G", "GG", "G1"],
+      tamanhos: [
+        {
+          cor_nome: "Branco",
+          tamanho: "PP",
+        },
+        {
+          cor_nome: "Branco",
+          tamanho: "P",
+        },
+        {
+          cor_nome: "Branco",
+          tamanho: "M",
+        },
+        {
+          cor_nome: "Branco",
+          tamanho: "G",
+        },
+        {
+          cor_nome: "Branco",
+          tamanho: "GG",
+        },
+        {
+          cor_nome: "Branco",
+          tamanho: "G1",
+        },
+      ],
     },
     preto: {
-      tamanhos: ["PP", "P", "M", "G", "GG", "G1"],
+      tamanhos: [
+        {
+          cor_nome: "Preto",
+          tamanho: "PP",
+        },
+        {
+          cor_nome: "Preto",
+          tamanho: "P",
+        },
+        {
+          cor_nome: "Preto",
+          tamanho: "M",
+        },
+        {
+          cor_nome: "Preto",
+          tamanho: "G",
+        },
+        {
+          cor_nome: "Preto",
+          tamanho: "GG",
+        },
+        {
+          cor_nome: "Preto",
+          tamanho: "G1",
+        },
+      ],
     },
     azul: {
-      tamanhos: ["PP", "P", "M", "G", "GG", "G1"],
+      tamanhos: [
+        {
+          cor_nome: "Azul",
+          tamanho: "PP",
+        },
+        {
+          cor_nome: "Azul",
+          tamanho: "P",
+        },
+        {
+          cor_nome: "Azul",
+          tamanho: "M",
+        },
+        {
+          cor_nome: "Azul",
+          tamanho: "G",
+        },
+        {
+          cor_nome: "Azul",
+          tamanho: "GG",
+        },
+        {
+          cor_nome: "Azul",
+          tamanho: "G1",
+        },
+      ],
     },
   },
 ];
@@ -157,6 +240,7 @@ export default function Home() {
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [carregando, setCarregando] = useState(false);
+  const [loja, setLoja] = useState("");
 
   //Caputura do Formulário
   const {
@@ -176,7 +260,6 @@ export default function Home() {
     var imagensInfantis: any = [];
 
     for (let i = 0; i < data.imagens.length; i++) {
-      // formData.append(`imagens`, data.imagens[i]);
       const file = data.imagens[i];
       const formData = new FormData();
       formData.append("file", file);
@@ -236,7 +319,8 @@ export default function Home() {
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
             marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary
+            url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+            grupo_de_produtos: "Camisa Master",
           });
         });
       }
@@ -253,7 +337,8 @@ export default function Home() {
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
             marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary
+            url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
+            grupo_de_produtos: "Camisa Master",
           });
         });
       }
@@ -270,11 +355,147 @@ export default function Home() {
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
             marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary
+            url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
+            grupo_de_produtos: "Camisa Master",
           });
         });
       }
     }
+
+    if (tipoDeProduto === "camiseta") {
+      if (tipoAlgodao === "semalgodao") {
+        if (data.tamanho_masculino) {
+          relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
+            variacaoDeProduto.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
+              estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
+              preco:
+                item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+              produto_variacao: "Variação",
+              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_do_item: "Mercadoria para Revenda",
+              codigo_pai: data.codigo.toLocaleUpperCase(),
+              marca: "Brk Agro", // backlog Loja
+              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+              grupo_de_produtos: "Camiseta Casual",
+            });
+          });
+        }
+
+        if (data.tamanho_feminino) {
+          relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
+            variacaoDeProduto.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              descricao: `Gênero: Feminino;Tamanho: ${item.nome}`,
+              estoque: estoque,
+              preco: preco,
+              produto_variacao: "Variação",
+              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_do_item: "Mercadoria para Revenda",
+              codigo_pai: data.codigo.toLocaleUpperCase(),
+              marca: "Brk Agro", // backlog Loja
+              url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
+              grupo_de_produtos: "Camiseta Casual",
+            });
+          });
+        }
+
+        if (data.tamanho_infantil) {
+          relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
+            variacaoDeProduto.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              descricao: `Gênero: Infantil;Tamanho: ${item.nome}`,
+              estoque: estoque,
+              preco: preco,
+              produto_variacao: "Variação",
+              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_do_item: "Mercadoria para Revenda",
+              codigo_pai: data.codigo.toLocaleUpperCase(),
+              marca: "Brk Agro", // backlog Loja
+              url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
+              grupo_de_produtos: "Camiseta Casual",
+            });
+          });
+        }
+      }
+
+      if (tipoAlgodao === "comalgodao") {
+        if (data.cor_branco) {
+          relacaoDeCores[0].branco.tamanhos.map((item) => {
+            variacaoDeProduto.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
+                item.tamanho
+              }`,
+              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+              estoque:
+                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
+              preco:
+                item.tamanho === "G3" || item.tamanho === "G4"
+                  ? preco + 20
+                  : preco,
+              produto_variacao: "Variação",
+              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_do_item: "Mercadoria para Revenda",
+              codigo_pai: data.codigo.toLocaleUpperCase(),
+              marca: "Brk Agro", // backlog Loja
+              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+              grupo_de_produtos: "Camiseta Algodão",
+            });
+          });
+        }
+
+        if (data.cor_preto) {
+          relacaoDeCores[0].preto.tamanhos.map((item) => {
+            variacaoDeProduto.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
+                item.tamanho
+              }`,
+              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+              estoque:
+                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
+              preco:
+                item.tamanho === "G3" || item.tamanho === "G4"
+                  ? preco + 20
+                  : preco,
+              produto_variacao: "Variação",
+              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_do_item: "Mercadoria para Revenda",
+              codigo_pai: data.codigo.toLocaleUpperCase(),
+              marca: "Brk Agro", // backlog Loja
+              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+              grupo_de_produtos: "Camiseta Algodão",
+            });
+          });
+        }
+
+        if (data.cor_azul) {
+          relacaoDeCores[0].azul.tamanhos.map((item) => {
+            variacaoDeProduto.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
+                item.tamanho
+              }`,
+              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+              estoque:
+                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
+              preco:
+                item.tamanho === "G3" || item.tamanho === "G4"
+                  ? preco + 20
+                  : preco,
+              produto_variacao: "Variação",
+              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_do_item: "Mercadoria para Revenda",
+              codigo_pai: data.codigo.toLocaleUpperCase(),
+              marca: "Brk Agro", // backlog Loja
+              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+              grupo_de_produtos: "Camiseta Algodão",
+            });
+          });
+        }
+      }
+    }
+
+    // console.log(variacaoDeProduto);
 
     try {
       geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
@@ -292,47 +513,47 @@ export default function Home() {
       Descrição: row.descricao, // Dinâmico
       Unidade: "UN",
       NCM: "6101.30.00",
-      Origem: "0",
+      Origem: parseFloat("0"),
       Preço: row.preco, // Dinâmico
-      "Valor IPI fixo": "0",
+      "Valor IPI fixo": parseFloat("0"),
       Observações: "",
       Situação: "Ativo",
       Estoque: row.estoque, // Dinâmico
-      "Preço de custo": "55",
+      "Preço de custo": parseFloat("55"),
       "Cód. no fornecedor": "",
       Fornecedor: "",
       Localização: "",
-      "Estoque máximo": "0",
-      "Estoque mínimo": "0",
-      "Peso líquido (Kg)": "0,25",
-      "Peso bruto (Kg)": "0,25",
+      "Estoque máximo": parseFloat("0"),
+      "Estoque mínimo": parseFloat("0"),
+      "Peso líquido (Kg)": "0,250",
+      "Peso bruto (Kg)": "0,250",
       "GTIN/EAN": "", // Dinâmico
       "GTIN/EAN da Embalagem": "", // Dinâmico
-      "Largura do produto": "1",
-      "Altura do Produto": "11",
-      "Profundidade do produto": "16",
+      "Largura do produto": parseFloat("1"),
+      "Altura do Produto": parseFloat("11"),
+      "Profundidade do produto": parseFloat("16"),
       "Data Validade": "",
       "Descrição do Produto no Fornecedor": "",
       "Descrição Complementar": "",
-      "Itens p/ caixa": "",
+      "Itens p/ caixa": parseFloat("1"),
       "Produto Variação": row.produto_variacao, // Dinâmico
       "Tipo Produção": row.tipo_producao, // Dinâmico
       "Classe de enquadramento do IPI": "",
       "Código na Lista de Serviços": "",
       "Tipo do item": row.tipo_do_item, // Dinâmico
       "Grupo de Tags/Tags": "",
-      Tributos: "0",
+      Tributos: parseFloat("0"),
       "Código Pai": row.codigo_pai, // Dinâmico
-      "Código Integração": "0",
-      "Grupo de produtos": "",
-      Marca: row.marca, // Dinâmico
+      "Código Integração": parseFloat("0"),
+      "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
+      Marca: "", // Dinâmico row.marca
       CEST: "28.038.00",
-      Volumes: "1",
+      Volumes: parseFloat("1"),
       "Descrição Curta": "",
       "Cross-Docking": "",
       "URL Imagens Externas": row.url_imagens_externas, // Dinâmico
       "Link Externo": "",
-      "Meses Garantia no Fornecedor": "0",
+      "Meses Garantia no Fornecedor": parseFloat("0"),
       "Clonar dados do pai": "NÂO",
       "Condição do Produto": "NOVO",
       "Frete Grátis": "NÂO",
@@ -340,10 +561,10 @@ export default function Home() {
       Vídeo: "",
       Departamento: "",
       "Unidade de Medida": "Centímetro",
-      "Preço de Compra": "0",
-      "Valor base ICMS ST para retenção": "0",
-      "Valor ICMS ST para retenção": "0",
-      "Valor ICMS próprio do substituto": "0",
+      "Preço de Compra": parseFloat("0"),
+      "Valor base ICMS ST para retenção": parseFloat("0"),
+      "Valor ICMS ST para retenção": parseFloat("0"),
+      "Valor ICMS próprio do substituto": parseFloat("0"),
       "Categoria do produto": "",
       "Informações Adicionais": "",
     }));
@@ -352,7 +573,9 @@ export default function Home() {
 
     const workbook = utils.book_new();
     utils.book_append_sheet(workbook, worksheet, "");
-    writeFileXLSX(workbook, `${codigoProduto}.xlsx`, { compression: true });
+    writeFileXLSX(workbook, `${codigoProduto}-bling-3.xlsx`, {
+      compression: true,
+    });
 
     setCarregando(false);
   }
@@ -361,51 +584,119 @@ export default function Home() {
 
   return (
     <>
-      <div className="flex flex-col h-full w-full items-center justify-center gap-24 bg-gradient-to-r from-zinc-800 to-zinc-950">
+      <div className="relative flex flex-col h-full w-full items-center justify-center gap-24 bg-gradient-to-r from-zinc-800 to-zinc-950 overflow-hidden">
+        <Image
+          src={`/camisa.png`}
+          className={`absolute ease-in-out -left-60 -bottom-80 ${
+            tipoDeProduto === "camisa"
+              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
+              : "opacity-0 translate-x-10 translate-y-10"
+          }`}
+          width={900}
+          height={900}
+          alt=""
+        />
+
+        <Image
+          src={`/camiseta.png`}
+          className={`absolute ease-in-out -left-60 -bottom-80 ${
+            tipoDeProduto === "camiseta"
+              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
+              : "opacity-0 translate-x-10 translate-y-10"
+          }`}
+          width={900}
+          height={900}
+          alt=""
+        />
+
+        {/* Escolha de Loja */}
+        <div className="flex justify-center align-center z-10">
+          <button
+            onClick={() => setLoja("agro")}
+            type="button"
+            className={`flex flex-col gap-1 items-center justify-center py-2 px-6 text-zinc-200 ${
+              tipoDeProduto === "agro"
+                ? "border-b border-transparent text-zinc-200"
+                : "text-zinc-200 hover:border-b b-zinc-200"
+            }`}
+          >
+            <Barn className="text-zinc-200" size={32} />
+            BRK Agro
+          </button>
+          <button
+            onClick={() => setLoja("fishing")}
+            type="button"
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-zinc-200 ${
+              tipoDeProduto === "fishing"
+                ? "border-b border-transparent"
+                : "border-b b-zinc-200"
+            }`}
+          >
+            <FishSimple size={32} />
+            BRK Fishing
+          </button>
+          <button
+            onClick={() => setLoja("motors")}
+            type="button"
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg text-zinc-200 ${
+              tipoDeProduto === "bone"
+                ? "bg-slate-200 text-zinc-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+            }`}
+          >
+            <Motorcycle size={32} />
+            BRK Motors
+          </button>
+        </div>
+
         {/* Escolha do Produto */}
-        <div className="flex justify-center align-center gap-10">
+        <div className="absolute right-0 flex flex-col justify-center align-center divide-y z-10">
           <button
             onClick={() => setTipoDeProduto("camisa")}
             type="button"
-            className={`flex border border-zinc-200 rounded-lg px-6 py-3 ${
+            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 rounded-tl-lg  ${
               tipoDeProduto === "camisa"
                 ? "bg-slate-200 text-zinc-950"
-                : "hover:bg-slate-200 hover:text-slate-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
+            <Hoodie size={32} />
             Camisa
           </button>
           <button
             onClick={() => setTipoDeProduto("camiseta")}
             type="button"
-            className={`flex border border-zinc-200 rounded-lg px-6 py-3 ${
+            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${
               tipoDeProduto === "camiseta"
                 ? "bg-slate-200 text-zinc-950"
-                : "hover:bg-slate-200 hover:text-slate-950"
-            } opacity-15 pointer-events-none`}
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+            }`}
           >
+            <TShirt size={32} />
             Camiseta
           </button>
           <button
             onClick={() => setTipoDeProduto("bone")}
             type="button"
-            className={`flex border border-zinc-200 rounded-lg px-6 py-3 ${
+            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${
               tipoDeProduto === "bone"
                 ? "bg-slate-200 text-zinc-950"
-                : "hover:bg-slate-200 hover:text-slate-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             } opacity-15 pointer-events-none`}
           >
+            <BaseballCap size={32} />
             Boné
           </button>
           <button
             onClick={() => setTipoDeProduto("cortavento")}
             type="button"
-            className={`flex border border-zinc-200 rounded-lg px-6 py-3 ${
+            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 rounded-bl-lg ${
               tipoDeProduto === "cortavento"
                 ? "bg-slate-200 text-zinc-950"
-                : "hover:bg-slate-200 hover:text-slate-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             } opacity-15 pointer-events-none`}
           >
+            <Hoodie size={32} />
             Corta-vento
           </button>
         </div>
@@ -423,7 +714,7 @@ export default function Home() {
                   htmlFor="imagens"
                 >
                   <input
-                    className="cursor-pointer"
+                    className="cursor-pointer text-zinc-200"
                     type="file"
                     id="imagens"
                     multiple
@@ -433,7 +724,10 @@ export default function Home() {
                 </label>
 
                 <div className="flex gap-10 mb-16">
-                  <label className="flex flex-col gap-2" htmlFor="codigo">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="codigo"
+                  >
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
@@ -442,10 +736,12 @@ export default function Home() {
                       placeholder="Ex: C0..."
                       required
                       {...register("codigo")}
-                      defaultValue={`C0`}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="titulo">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="titulo"
+                  >
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -454,10 +750,12 @@ export default function Home() {
                       placeholder="Ex: Camisa Agro Brk..."
                       required
                       {...register("titulo")}
-                      defaultValue={`Camisa Agro Brk `}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="estoque">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="estoque"
+                  >
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -469,13 +767,16 @@ export default function Home() {
                       {...register("estoque")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="preco">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="preco"
+                  >
                     Preço ( R$ )
                     <input
-                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                       id="preco"
                       type="text"
-                      defaultValue={precos.camisa}
+                      placeholder={`${precos.camisa}`}
                       required
                       {...register("preco")}
                     />
@@ -494,7 +795,7 @@ export default function Home() {
                       {...register("tamanho_masculino")}
                       defaultChecked={true}
                     />
-                    <span>Masculino</span>
+                    <span className="text-zinc-200">Masculino</span>
                   </label>
                   <label
                     className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
@@ -506,7 +807,7 @@ export default function Home() {
                       {...register("tamanho_feminino")}
                       defaultChecked={true}
                     />
-                    <span>Feminino</span>
+                    <span className="text-zinc-200">Feminino</span>
                   </label>
                   <label
                     className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
@@ -518,7 +819,7 @@ export default function Home() {
                       {...register("tamanho_infantil")}
                       defaultChecked={true}
                     />
-                    <span>Infantil</span>
+                    <span className="text-zinc-200">Infantil</span>
                   </label>
                 </div>
               </>
@@ -526,44 +827,77 @@ export default function Home() {
 
             {tipoDeProduto === "camiseta" && (
               <>
-                <input type="file" id="" multiple {...register("imagens")} />
+                <label
+                  className="flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg"
+                  htmlFor="imagens"
+                >
+                  <input
+                    className="cursor-pointer text-zinc-200"
+                    type="file"
+                    id="imagens"
+                    multiple
+                    required
+                    {...register("imagens")}
+                  />
+                </label>
 
-                <div className="flex gap-4 mb-16">
-                  <label className="flex flex-col gap-2" htmlFor="codigo">
+                <div className="flex gap-10 mb-16">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="codigo"
+                  >
                     Código
                     <input
-                      className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5 uppercase"
+                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
                       id="codigo"
                       type="text"
-                      placeholder="Ex: APC0..."
+                      placeholder="Ex: CASUAL / APC0_"
+                      required
+                      {...register("codigo")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="titulo">
+
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="titulo"
+                  >
                     Titulo
                     <input
-                      className="min-w-96 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
+                      className="min-w-96 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                       id="titulo"
                       type="text"
                       placeholder="Ex: Camiseta Agro Brk..."
+                      required
+                      {...register("titulo")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="estoque">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="estoque"
+                  >
                     Estoque
                     <input
-                      className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
+                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                       id="estoque"
                       type="text"
                       placeholder="Ex: C0..."
-                      defaultValue={1000}
+                      required
+                      defaultValue={10000}
+                      {...register("estoque")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="preco">
+                  <label
+                    className="flex flex-col gap-2 text-zinc-200"
+                    htmlFor="preco"
+                  >
                     Preço ( R$ )
                     <input
-                      className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
+                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                       id="preco"
                       type="text"
-                      defaultValue={precos.camiseta}
+                      placeholder={`${precos.camiseta}`}
+                      required
+                      {...register("preco")}
                     />
                   </label>
                 </div>
@@ -572,7 +906,7 @@ export default function Home() {
                   <button
                     onClick={() => setTipoAlgodao("comalgodao")}
                     type="button"
-                    className={`pb-2 ${
+                    className={`pb-2 text-zinc-200 ${
                       tipoAlgodao === "comalgodao"
                         ? "border-b b-zinc-200"
                         : "border-b border-transparent hover:border-b hover:border-zinc-200"
@@ -583,7 +917,7 @@ export default function Home() {
                   <button
                     onClick={() => setTipoAlgodao("semalgodao")}
                     type="button"
-                    className={`pb-2 ${
+                    className={`pb-2 text-zinc-200 ${
                       tipoAlgodao === "semalgodao"
                         ? "border-b b-zinc-200"
                         : "border-b border-transparent hover:border-b hover:border-zinc-200"
@@ -606,7 +940,7 @@ export default function Home() {
                         name=""
                         defaultChecked={true}
                       />
-                      <span>Masculino</span>
+                      <span className="text-zinc-200">Masculino</span>
                     </label>
                     <label
                       className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
@@ -618,7 +952,7 @@ export default function Home() {
                         name=""
                         defaultChecked={true}
                       />
-                      <span>Feminino</span>
+                      <span className="text-zinc-200">Feminino</span>
                     </label>
                     <label
                       className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
@@ -630,7 +964,7 @@ export default function Home() {
                         name=""
                         defaultChecked={true}
                       />
-                      <span>Infantil</span>
+                      <span className="text-zinc-200">Infantil</span>
                     </label>
                   </div>
                 )}
@@ -645,10 +979,10 @@ export default function Home() {
                       <input
                         id="genero-masculino"
                         type="checkbox"
-                        name=""
                         defaultChecked={true}
+                        {...register("cor_branco")}
                       />
-                      <span>Branco</span>
+                      <span className="text-zinc-200">Branco</span>
                     </label>
                     <label
                       className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
@@ -657,10 +991,10 @@ export default function Home() {
                       <input
                         id="genero-feminino"
                         type="checkbox"
-                        name=""
                         defaultChecked={true}
+                        {...register("cor_preto")}
                       />
-                      <span>Preto</span>
+                      <span className="text-zinc-200">Preto</span>
                     </label>
                     <label
                       className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
@@ -669,10 +1003,10 @@ export default function Home() {
                       <input
                         id="genero-infantil"
                         type="checkbox"
-                        name=""
                         defaultChecked={true}
+                        {...register("cor_azul")}
                       />
-                      <span>Azul</span>
+                      <span className="text-zinc-200">Azul</span>
                     </label>
                   </div>
                 )}
@@ -775,7 +1109,7 @@ export default function Home() {
               <div className="flex container items-center justify-center mt-32 pt-10 py-2 px-10 border-t border-zinc-800">
                 <button
                   type="submit"
-                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg ${
+                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${
                     carregando &&
                     "pointer-events-none cursor-not-allowed opacity-5"
                   }`}
