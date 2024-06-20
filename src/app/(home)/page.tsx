@@ -546,7 +546,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: "", // Dinâmico row.marca
+      Marca: loja, // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -581,13 +581,14 @@ export default function Home() {
   }
 
   //geraPlanilha();
+  console.log(loja);
 
   return (
     <>
       <div className="relative flex flex-col h-full w-full items-center justify-center gap-24 bg-gradient-to-r from-zinc-800 to-zinc-950 overflow-hidden">
         <Image
           src={`/camisa.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 ${
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
             tipoDeProduto === "camisa"
               ? "translate-x-0 translate-y-0 placeholder-opacity-75"
               : "opacity-0 translate-x-10 translate-y-10"
@@ -596,10 +597,9 @@ export default function Home() {
           height={900}
           alt=""
         />
-
         <Image
           src={`/camiseta.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 ${
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
             tipoDeProduto === "camiseta"
               ? "translate-x-0 translate-y-0 placeholder-opacity-75"
               : "opacity-0 translate-x-10 translate-y-10"
@@ -614,41 +614,48 @@ export default function Home() {
           <button
             onClick={() => setLoja("agro")}
             type="button"
-            className={`flex flex-col gap-1 items-center justify-center py-2 px-6 text-zinc-200 ${
-              tipoDeProduto === "agro"
-                ? "border-b border-transparent text-zinc-200"
-                : "text-zinc-200 hover:border-b b-zinc-200"
-            }`}
+            className={`flex flex-col gap-1 items-center justify-center py-2 px-6`}
           >
-            <Barn className="text-zinc-200" size={32} />
-            BRK Agro
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
+              <Barn className="" size={32} />
+              BRK Agro
+            </span>
           </button>
           <button
             onClick={() => setLoja("fishing")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-zinc-200 ${
-              tipoDeProduto === "fishing"
-                ? "border-b border-transparent"
-                : "border-b b-zinc-200"
-            }`}
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6`}
           >
-            <FishSimple size={32} />
-            BRK Fishing
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
+              <FishSimple size={32} />
+              BRK Fishing
+            </span>
           </button>
           <button
             onClick={() => setLoja("motors")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg text-zinc-200 ${
-              tipoDeProduto === "bone"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg ${
+              loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
             }`}
           >
-            <Motorcycle size={32} />
-            BRK Motors
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
+              <Motorcycle size={32} />
+              BRK Motors
+            </span>
           </button>
         </div>
-
         {/* Escolha do Produto */}
         <div className="absolute right-0 flex flex-col justify-center align-center divide-y z-10">
           <button
@@ -700,9 +707,8 @@ export default function Home() {
             Corta-vento
           </button>
         </div>
-
         {/* Formulários */}
-        <div className="flex">
+        <div className="flex z-10">
           <form
             className="flex flex-col justify-center items-center gap-10"
             onSubmit={handleSubmit(onSubmit)}
@@ -718,7 +724,7 @@ export default function Home() {
                     type="file"
                     id="imagens"
                     multiple
-                    required
+                    // required
                     {...register("imagens")}
                   />
                 </label>
