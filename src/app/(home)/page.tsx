@@ -259,6 +259,10 @@ export default function Home() {
     var imagensFemininas: any = [];
     var imagensInfantis: any = [];
 
+    var imagensCorBranco: any = [];
+    var imagensCorPreto: any = [];
+    var imagensCorAzul: any = [];
+
     for (let i = 0; i < data.imagens.length; i++) {
       const file = data.imagens[i];
       const formData = new FormData();
@@ -271,6 +275,7 @@ export default function Home() {
           formData
         );
 
+        // Imagens por Gênero...
         if (file.name.toLowerCase().includes("masc"))
           imagensMasculinas.push(response.data.secure_url);
 
@@ -279,6 +284,16 @@ export default function Home() {
 
         if (file.name.toLowerCase().includes("inf"))
           imagensInfantis.push(response.data.secure_url);
+
+        // Imagens por Cores
+        if (file.name.toLowerCase().includes("branco"))
+          imagensCorBranco.push(response.data.secure_url);
+
+        if (file.name.toLowerCase().includes("preto"))
+          imagensCorPreto.push(response.data.secure_url);
+
+        if (file.name.toLowerCase().includes("azul"))
+          imagensCorAzul.push(response.data.secure_url);
 
         todasAsImagens.push(response.data.secure_url);
       } catch (error) {
@@ -364,6 +379,8 @@ export default function Home() {
 
     if (tipoDeProduto === "camiseta") {
       if (tipoAlgodao === "semalgodao") {
+        console.log("informações do formulário: ", data);
+
         if (data.tamanho_masculino) {
           relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
             variacaoDeProduto.push({
@@ -423,80 +440,72 @@ export default function Home() {
       if (tipoAlgodao === "comalgodao") {
         if (data.cor_branco) {
           relacaoDeCores[0].branco.tamanhos.map((item) => {
-            variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                item.tamanho
-              }`,
-              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
-              estoque:
-                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
-              preco:
-                item.tamanho === "G3" || item.tamanho === "G4"
-                  ? preco + 20
-                  : preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Algodão",
-            });
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
+                  item.tamanho
+                }`,
+                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+            }
           });
         }
 
         if (data.cor_preto) {
           relacaoDeCores[0].preto.tamanhos.map((item) => {
-            variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                item.tamanho
-              }`,
-              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
-              estoque:
-                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
-              preco:
-                item.tamanho === "G3" || item.tamanho === "G4"
-                  ? preco + 20
-                  : preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Algodão",
-            });
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
+                  item.tamanho
+                }`,
+                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensCorPreto.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+            }
           });
         }
 
         if (data.cor_azul) {
           relacaoDeCores[0].azul.tamanhos.map((item) => {
-            variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                item.tamanho
-              }`,
-              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
-              estoque:
-                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
-              preco:
-                item.tamanho === "G3" || item.tamanho === "G4"
-                  ? preco + 20
-                  : preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Algodão",
-            });
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
+                  item.tamanho
+                }`,
+                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                marca: "Brk Agro", // backlog Loja
+                url_imagens_externas: imagensCorAzul.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+            }
           });
         }
       }
     }
 
     // console.log(variacaoDeProduto);
-
+    // setCarregando(false);
     try {
       geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
     } catch (error) {
@@ -656,6 +665,7 @@ export default function Home() {
             </span>
           </button>
         </div>
+
         {/* Escolha do Produto */}
         <div className="absolute right-0 flex flex-col justify-center align-center divide-y z-10">
           <button
@@ -707,6 +717,7 @@ export default function Home() {
             Corta-vento
           </button>
         </div>
+
         {/* Formulários */}
         <div className="flex z-10">
           <form
@@ -943,7 +954,7 @@ export default function Home() {
                       <input
                         id="genero-masculino"
                         type="checkbox"
-                        name=""
+                        {...register("tamanho_masculino")}
                         defaultChecked={true}
                       />
                       <span className="text-zinc-200">Masculino</span>
@@ -955,7 +966,7 @@ export default function Home() {
                       <input
                         id="genero-feminino"
                         type="checkbox"
-                        name=""
+                        {...register("tamanho_feminino")}
                         defaultChecked={true}
                       />
                       <span className="text-zinc-200">Feminino</span>
@@ -967,7 +978,7 @@ export default function Home() {
                       <input
                         id="genero-infantil"
                         type="checkbox"
-                        name=""
+                        {...register("tamanho_infantil")}
                         defaultChecked={true}
                       />
                       <span className="text-zinc-200">Infantil</span>
