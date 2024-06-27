@@ -6,7 +6,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "BRK | Auto Cadastro ",
-  description: "Aplicação desenvolvida com o objetivo facilitar nos cadastros de produtos variados.",
+  description:
+    "Aplicação desenvolvida com o objetivo facilitar nos cadastros de produtos variados.",
 };
 
 export default function RootLayout({
@@ -15,8 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`flex h-screen w-screen justify-center items-center ${inter.className}`}>{children}</body>
+    <html lang="pt">
+      <body
+        className={`flex h-screen w-screen justify-center items-center ${inter.className}`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
