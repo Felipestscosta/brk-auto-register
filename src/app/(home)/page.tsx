@@ -247,17 +247,15 @@ export default function Home() {
   };
 
   async function getToken() {
-    console.log("API de geração de Token acessada!");
-    // axios.get(`/api/get-bling-token?code=${codigoBling}`).then((data) => {
-    //   console.log(data);
-    //   setTokenBling(data.data.access_token);
-    // });
+    axios.get(`/api/get-bling-token?code=${codigoBling}`).then((data) => {
+      setTokenBling(data.data.access_token);
+    });
   }
 
   useEffect(() => {
     if (codigoBling === null) iniciarOAuth();
 
-    if (codigoBling !== "") getToken();
+    if (codigoBling !== "" && tokenBling === "") getToken();
   });
 
   //Ações no Bling
@@ -272,9 +270,9 @@ export default function Home() {
 
   async function saveProdutos(data: any) {
     setCarregando(false);
-    console.log("Token do Bling: ", tokenBling);
-    // const response = await axios.post(`/api/get-bling-produtos?token=${tokenBling}`, data);
-    // if (response.status === 201) alert("Produto Cadastrado com sucesso 🚀");
+
+    const response = await axios.post(`/api/get-bling-produtos?token=${tokenBling}`, data);
+    if (response.status === 201) alert("Produto Cadastrado com sucesso 🚀");
   }
 
   //Caputura do Formulário
