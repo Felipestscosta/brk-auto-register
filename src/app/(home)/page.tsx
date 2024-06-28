@@ -1,21 +1,12 @@
 "use client";
 import { writeFileXLSX, utils } from "xlsx";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 import Image from "next/image";
-import {
-  Barn,
-  BaseballCap,
-  CircleNotch,
-  FishSimple,
-  Hoodie,
-  Motorcycle,
-  TShirt,
-} from "@phosphor-icons/react";
+import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, Motorcycle, TShirt } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
-import { randomUUID } from "crypto";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -245,61 +236,46 @@ export default function Home() {
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [carregando, setCarregando] = useState(false);
-  const [loja, setLoja] = useState("");
   const [tokenBling, setTokenBling] = useState("");
+  const [loja, setLoja] = useState("");
 
   // Autenticação do Bling
-  const getToken = async () => {
-    console.log("codigo do bling", codigoBling);
-    try {
-      if (codigoBling !== null) {
-        const response = await axios.get(
-          `/api/get-bling-token?code=${codigoBling}`
-        );
-        setTokenBling(response.data.access_token);
-      } else {
-        iniciarOAuth();
-      }
-    } catch (error) {
-      console.error("Erro ao obter token:", error);
-      throw error;
-    }
-  };
-
   const iniciarOAuth = async () => {
     const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
     const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
     window.location.href = authUrl;
   };
 
-  if (codigoBling === null) {
-    iniciarOAuth();
-  } else {
-    getToken();
+  async function getToken() {
+    console.log("API de geração de Token acessada!");
+    // axios.get(`/api/get-bling-token?code=${codigoBling}`).then((data) => {
+    //   console.log(data);
+    //   setTokenBling(data.data.access_token);
+    // });
   }
+
+  useEffect(() => {
+    if (codigoBling === null) iniciarOAuth();
+
+    if (codigoBling !== "") getToken();
+  }, [codigoBling]);
 
   //Ações no Bling
   const getProdutos = async () => {
-    const response = await axios.get(
-      `/api/get-bling-produtos?token=${tokenBling}`
-    );
-    console.log(response.data);
+    setCarregando(false);
+    console.log("Token do Bling: ", tokenBling);
+    // if (tokenBling)
+    //   const response = await axios.get(
+    //     `/api/get-bling-produtos?token=${tokenBling}`
+    //   );
   };
 
   async function saveProdutos(data: any) {
     setCarregando(false);
-    console.log("Acessando Save Produtos");
-    const response = await axios.post(
-      `/api/get-bling-produtos?token=${tokenBling}`,
-      {
-        data,
-      }
-    );
-
-    console.log(response.data);
+    console.log("Token do Bling: ", tokenBling);
+    // const response = await axios.post(`/api/get-bling-produtos?token=${tokenBling}`, data);
+    // if (response.status === 201) alert("Produto Cadastrado com sucesso 🚀");
   }
-
-  console.log(tokenBling);
 
   //Caputura do Formulário
   const {
@@ -329,30 +305,21 @@ export default function Home() {
       formData.append("upload_preset", "ml_default");
 
       try {
-        const response = await axios.post(
-          "https://api.cloudinary.com/v1_1/daruxsllg/image/upload",
-          formData
-        );
+        const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
 
         // Imagens por Gênero...
-        if (file.name.toLowerCase().includes("masc"))
-          imagensMasculinas.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("masc")) imagensMasculinas.push(response.data.secure_url);
 
-        if (file.name.toLowerCase().includes("fem"))
-          imagensFemininas.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("fem")) imagensFemininas.push(response.data.secure_url);
 
-        if (file.name.toLowerCase().includes("inf"))
-          imagensInfantis.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("inf")) imagensInfantis.push(response.data.secure_url);
 
         // Imagens por Cores
-        if (file.name.toLowerCase().includes("branco"))
-          imagensCorBranco.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("branco")) imagensCorBranco.push(response.data.secure_url);
 
-        if (file.name.toLowerCase().includes("preto"))
-          imagensCorPreto.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("preto")) imagensCorPreto.push(response.data.secure_url);
 
-        if (file.name.toLowerCase().includes("azul"))
-          imagensCorAzul.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("azul")) imagensCorAzul.push(response.data.secure_url);
 
         todasAsImagens.push(response.data.secure_url);
       } catch (error) {
@@ -386,8 +353,7 @@ export default function Home() {
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
             descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
             estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
-            preco:
-              item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+            preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
             produto_variacao: "Variação",
             tipo_producao: "Terceiros", // backlog Bling 1
             tipo_do_item: "Mercadoria para Revenda",
@@ -446,8 +412,7 @@ export default function Home() {
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
               descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
               estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
-              preco:
-                item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+              preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
               produto_variacao: "Variação",
               tipo_producao: "Terceiros", // backlog Bling 1
               tipo_do_item: "Mercadoria para Revenda",
@@ -501,9 +466,7 @@ export default function Home() {
           relacaoDeCores[0].branco.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                  item.tamanho
-                }`,
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
                 descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -522,9 +485,7 @@ export default function Home() {
           relacaoDeCores[0].preto.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                  item.tamanho
-                }`,
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
                 descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -543,9 +504,7 @@ export default function Home() {
           relacaoDeCores[0].azul.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                  item.tamanho
-                }`,
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
                 descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -565,230 +524,15 @@ export default function Home() {
 
     try {
       saveProdutos({
-        id: 15514655645465465,
-        nome: data.titulo,
-        codigo: data.codigo,
-        preco: 1,
+        nome: "Produto de Teste Auto Generate",
         tipo: "P",
         situacao: "A",
         formato: "S",
-        descricaoCurta: "Descrição curta",
-        dataValidade: "2020-01-01",
-        unidade: "UN",
-        pesoLiquido: 1,
-        pesoBruto: 1,
-        volumes: 1,
-        itensPorCaixa: 1,
-        gtin: "1234567890123",
-        gtinEmbalagem: "1234567890123",
-        tipoProducao: "P",
-        condicao: 0,
-        freteGratis: false,
-        marca: "Marca",
-        descricaoComplementar: "Descrição complementar",
-        linkExterno: "https://www.google.com",
-        observacoes: "Observações",
-        descricaoEmbalagemDiscreta: "Produto teste",
-        categoria: {
-          id: 123456789,
-        },
-        estoque: {
-          minimo: 1,
-          maximo: 100,
-          crossdocking: 1,
-          localizacao: "14A",
-        },
-        actionEstoque: "",
-        dimensoes: {
-          largura: 1,
-          altura: 1,
-          profundidade: 1,
-          unidadeMedida: 1,
-        },
-        tributacao: {
-          origem: 0,
-          nFCI: "",
-          ncm: "",
-          cest: "",
-          codigoListaServicos: "",
-          spedTipoItem: "",
-          codigoItem: "",
-          percentualTributos: 0,
-          valorBaseStRetencao: 0,
-          valorStRetencao: 0,
-          valorICMSSubstituto: 0,
-          codigoExcecaoTipi: "",
-          classeEnquadramentoIpi: "",
-          valorIpiFixo: 0,
-          codigoSeloIpi: "",
-          valorPisFixo: 0,
-          valorCofinsFixo: 0,
-          codigoANP: "",
-          descricaoANP: "",
-          percentualGLP: 0,
-          percentualGasNacional: 0,
-          percentualGasImportado: 0,
-          valorPartida: 0,
-          tipoArmamento: 0,
-          descricaoCompletaArmamento: "",
-          dadosAdicionais: "",
-          grupoProduto: {
-            id: 123456789,
-          },
-        },
-        midia: {
-          video: {
-            url: "https://www.youtube.com/watch?v=1",
-          },
-          imagens: {
-            externas: [
-              {
-                link: "https://shutterstock.com/lalala123",
-              },
-            ],
-          },
-        },
-        linhaProduto: {
-          id: 1,
-        },
-        estrutura: {
-          tipoEstoque: "F",
-          lancamentoEstoque: "A",
-          componentes: [
-            {
-              produto: {
-                id: 1,
-              },
-              quantidade: 2.1,
-            },
-          ],
-        },
-        camposCustomizados: [
-          {
-            idCampoCustomizado: 123456789,
-            idVinculo:
-              "Utilize para atualizar o valor existente. Ex: 123456789",
-            valor: "256GB",
-            item: "Opção A",
-          },
-        ],
-        variacoes: [
-          {
-            id: 123456789,
-            nome: "Produto 1",
-            codigo: "CODE_123",
-            preco: 1,
-            tipo: "P",
-            situacao: "A",
-            formato: "S",
-            descricaoCurta: "Descrição curta",
-            dataValidade: "2020-01-01",
-            unidade: "UN",
-            pesoLiquido: 1,
-            pesoBruto: 1,
-            volumes: 1,
-            itensPorCaixa: 1,
-            gtin: "1234567890123",
-            gtinEmbalagem: "1234567890123",
-            tipoProducao: "P",
-            condicao: 0,
-            freteGratis: false,
-            marca: "Marca",
-            descricaoComplementar: "Descrição complementar",
-            linkExterno: "https://www.google.com",
-            observacoes: "Observações",
-            descricaoEmbalagemDiscreta: "Produto teste",
-            categoria: {
-              id: 123456789,
-            },
-            estoque: {
-              minimo: 1,
-              maximo: 100,
-              crossdocking: 1,
-              localizacao: "14A",
-            },
-            actionEstoque: "",
-            dimensoes: {
-              largura: 1,
-              altura: 1,
-              profundidade: 1,
-              unidadeMedida: 1,
-            },
-            tributacao: {
-              origem: 0,
-              nFCI: "",
-              ncm: "",
-              cest: "",
-              codigoListaServicos: "",
-              spedTipoItem: "",
-              codigoItem: "",
-              percentualTributos: 0,
-              valorBaseStRetencao: 0,
-              valorStRetencao: 0,
-              valorICMSSubstituto: 0,
-              codigoExcecaoTipi: "",
-              classeEnquadramentoIpi: "",
-              valorIpiFixo: 0,
-              codigoSeloIpi: "",
-              valorPisFixo: 0,
-              valorCofinsFixo: 0,
-              codigoANP: "",
-              descricaoANP: "",
-              percentualGLP: 0,
-              percentualGasNacional: 0,
-              percentualGasImportado: 0,
-              valorPartida: 0,
-              tipoArmamento: 0,
-              descricaoCompletaArmamento: "",
-              dadosAdicionais: "",
-              grupoProduto: {
-                id: 123456789,
-              },
-            },
-            midia: {
-              video: {
-                url: "https://www.youtube.com/watch?v=1",
-              },
-              imagens: {
-                externas: [
-                  {
-                    link: "https://shutterstock.com/lalala123",
-                  },
-                ],
-              },
-            },
-            linhaProduto: {
-              id: 1,
-            },
-            estrutura: {
-              tipoEstoque: "F",
-              lancamentoEstoque: "A",
-              componentes: [
-                {
-                  produto: {
-                    id: 1,
-                  },
-                  quantidade: 2.1,
-                },
-              ],
-            },
-            camposCustomizados: [
-              {
-                idCampoCustomizado: 123456789,
-                idVinculo:
-                  "Utilize para atualizar o valor existente. Ex: 123456789",
-                valor: "256GB",
-                item: "Opção A",
-              },
-            ],
-          },
-        ],
       });
       //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+      setCarregando(false);
     } catch (error) {
-      alert(
-        `Opa, houve um problema na geração da planilha. Chama o dev 😒: ${error}`
-      );
+      alert(`Opa, houve um problema na geração da planilha. Chama o dev 😒: ${error}`);
       setCarregando(false);
     }
   };
@@ -835,10 +579,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca:
-        (loja && "agro" && "Brk Agro") ||
-        (loja === "fishing" && "Brk Fishing") ||
-        (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      Marca: (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -910,10 +651,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca:
-        (loja === "agro" && "Brk Agro") ||
-        (loja === "fishing" && "Brk Fishing") ||
-        (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      Marca: (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -951,22 +689,14 @@ export default function Home() {
       <div className="relative flex flex-col h-full w-full items-center justify-center gap-4 bg-gradient-to-r from-zinc-800 to-zinc-950 overflow-hidden">
         <Image
           src={`/camisa.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
-            tipoDeProduto === "camisa"
-              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
-              : "opacity-0 translate-x-10 translate-y-10"
-          }`}
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${tipoDeProduto === "camisa" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
           width={900}
           height={900}
           alt=""
         />
         <Image
           src={`/camiseta.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
-            tipoDeProduto === "camiseta"
-              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
-              : "opacity-0 translate-x-10 translate-y-10"
-          }`}
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${tipoDeProduto === "camiseta" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
           width={900}
           height={900}
           alt=""
@@ -974,30 +704,14 @@ export default function Home() {
 
         {/* Escolha de Loja */}
         <div className="flex justify-center align-center z-10">
-          <button
-            onClick={() => setLoja("agro")}
-            type="button"
-            className={`flex flex-col gap-1 items-center justify-center py-2 px-6`}
-          >
-            <span
-              className={`flex flex-col items-center justify-center ${
-                loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"
-              } `}
-            >
+          <button onClick={() => setLoja("agro")} type="button" className={`flex flex-col gap-1 items-center justify-center py-2 px-6`}>
+            <span className={`flex flex-col items-center justify-center ${loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <Barn className="" size={32} />
               BRK Agro
             </span>
           </button>
-          <button
-            onClick={() => setLoja("fishing")}
-            type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6`}
-          >
-            <span
-              className={`flex flex-col items-center justify-center ${
-                loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"
-              } `}
-            >
+          <button onClick={() => setLoja("fishing")} type="button" className={`flex flex-col gap-2 items-center justify-center py-2 px-6`}>
+            <span className={`flex flex-col items-center justify-center ${loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <FishSimple size={32} />
               BRK Fishing
             </span>
@@ -1005,15 +719,9 @@ export default function Home() {
           <button
             onClick={() => setLoja("motors")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg ${
-              loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
-            }`}
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"}`}
           >
-            <span
-              className={`flex flex-col items-center justify-center ${
-                loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
-              } `}
-            >
+            <span className={`flex flex-col items-center justify-center ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <Motorcycle size={32} />
               BRK Motors
             </span>
@@ -1026,9 +734,7 @@ export default function Home() {
             onClick={() => setTipoDeProduto("camisa")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-6 px-2 rounded-tl-lg  ${
-              tipoDeProduto === "camisa"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "camisa" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <Hoodie size={32} />
@@ -1038,9 +744,7 @@ export default function Home() {
             onClick={() => setTipoDeProduto("camiseta")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${
-              tipoDeProduto === "camiseta"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "camiseta" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <TShirt size={32} />
@@ -1049,11 +753,7 @@ export default function Home() {
           <button
             onClick={() => setTipoDeProduto("bone")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${
-              tipoDeProduto === "bone"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
-            }`}
+            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${tipoDeProduto === "bone" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"}`}
           >
             <BaseballCap size={32} />
             Boné
@@ -1062,9 +762,7 @@ export default function Home() {
             onClick={() => setTipoDeProduto("cortavento")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-6 px-2 rounded-bl-lg ${
-              tipoDeProduto === "cortavento"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "cortavento" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             } opacity-15 pointer-events-none`}
           >
             <Hoodie size={32} />
@@ -1074,10 +772,7 @@ export default function Home() {
 
         {/* Formulários */}
         <div className="flex z-10">
-          <form
-            className="flex flex-col justify-center items-center gap-10"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="flex flex-col justify-center items-center gap-10" onSubmit={handleSubmit(onSubmit)}>
             {tipoDeProduto === "camisa" && (
               <>
                 <label
@@ -1095,10 +790,7 @@ export default function Home() {
                 </label>
 
                 <div className="flex gap-10 mb-16">
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="codigo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
@@ -1109,10 +801,7 @@ export default function Home() {
                       {...register("codigo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="titulo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1123,10 +812,7 @@ export default function Home() {
                       {...register("titulo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="estoque"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1138,10 +824,7 @@ export default function Home() {
                       {...register("estoque")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="preco"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço ( R$ )
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1156,40 +839,16 @@ export default function Home() {
 
                 {/* Variações de Gêneros */}
                 <div className="flex gap-4">
-                  <label
-                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                    htmlFor="tamanho-masculino"
-                  >
-                    <input
-                      id="tamanho-masculino"
-                      type="checkbox"
-                      {...register("tamanho_masculino")}
-                      defaultChecked={true}
-                    />
+                  <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-masculino">
+                    <input id="tamanho-masculino" type="checkbox" {...register("tamanho_masculino")} defaultChecked={true} />
                     <span className="text-zinc-200">Masculino</span>
                   </label>
-                  <label
-                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                    htmlFor="tamanho-feminino"
-                  >
-                    <input
-                      id="tamanho-feminino"
-                      type="checkbox"
-                      {...register("tamanho_feminino")}
-                      defaultChecked={true}
-                    />
+                  <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-feminino">
+                    <input id="tamanho-feminino" type="checkbox" {...register("tamanho_feminino")} defaultChecked={true} />
                     <span className="text-zinc-200">Feminino</span>
                   </label>
-                  <label
-                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                    htmlFor="tamanho-infantil"
-                  >
-                    <input
-                      id="tamanho-infantil"
-                      type="checkbox"
-                      {...register("tamanho_infantil")}
-                      defaultChecked={true}
-                    />
+                  <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-infantil">
+                    <input id="tamanho-infantil" type="checkbox" {...register("tamanho_infantil")} defaultChecked={true} />
                     <span className="text-zinc-200">Infantil</span>
                   </label>
                 </div>
@@ -1202,21 +861,11 @@ export default function Home() {
                   className="flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg"
                   htmlFor="imagens"
                 >
-                  <input
-                    className="cursor-pointer text-zinc-200"
-                    type="file"
-                    id="imagens"
-                    multiple
-                    required
-                    {...register("imagens")}
-                  />
+                  <input className="cursor-pointer text-zinc-200" type="file" id="imagens" multiple required {...register("imagens")} />
                 </label>
 
                 <div className="flex gap-10 mb-16">
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="codigo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
@@ -1228,10 +877,7 @@ export default function Home() {
                     />
                   </label>
 
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="titulo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1242,10 +888,7 @@ export default function Home() {
                       {...register("titulo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="estoque"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1257,10 +900,7 @@ export default function Home() {
                       {...register("estoque")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="preco"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço ( R$ )
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1277,22 +917,14 @@ export default function Home() {
                   <button
                     onClick={() => setTipoAlgodao("comalgodao")}
                     type="button"
-                    className={`pb-2 text-zinc-200 ${
-                      tipoAlgodao === "comalgodao"
-                        ? "border-b b-zinc-200"
-                        : "border-b border-transparent hover:border-b hover:border-zinc-200"
-                    }`}
+                    className={`pb-2 text-zinc-200 ${tipoAlgodao === "comalgodao" ? "border-b b-zinc-200" : "border-b border-transparent hover:border-b hover:border-zinc-200"}`}
                   >
                     Com Algodão Egípcio
                   </button>
                   <button
                     onClick={() => setTipoAlgodao("semalgodao")}
                     type="button"
-                    className={`pb-2 text-zinc-200 ${
-                      tipoAlgodao === "semalgodao"
-                        ? "border-b b-zinc-200"
-                        : "border-b border-transparent hover:border-b hover:border-zinc-200"
-                    }`}
+                    className={`pb-2 text-zinc-200 ${tipoAlgodao === "semalgodao" ? "border-b b-zinc-200" : "border-b border-transparent hover:border-b hover:border-zinc-200"}`}
                   >
                     Sem Algodão Egípcio
                   </button>
@@ -1301,40 +933,16 @@ export default function Home() {
                 {tipoAlgodao === "semalgodao" && (
                   // Variações de Gêneros
                   <div className="flex gap-4">
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-masculino"
-                    >
-                      <input
-                        id="genero-masculino"
-                        type="checkbox"
-                        {...register("tamanho_masculino")}
-                        defaultChecked={true}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-masculino">
+                      <input id="genero-masculino" type="checkbox" {...register("tamanho_masculino")} defaultChecked={true} />
                       <span className="text-zinc-200">Masculino</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-feminino"
-                    >
-                      <input
-                        id="genero-feminino"
-                        type="checkbox"
-                        {...register("tamanho_feminino")}
-                        defaultChecked={true}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-feminino">
+                      <input id="genero-feminino" type="checkbox" {...register("tamanho_feminino")} defaultChecked={true} />
                       <span className="text-zinc-200">Feminino</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-infantil"
-                    >
-                      <input
-                        id="genero-infantil"
-                        type="checkbox"
-                        {...register("tamanho_infantil")}
-                        defaultChecked={true}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-infantil">
+                      <input id="genero-infantil" type="checkbox" {...register("tamanho_infantil")} defaultChecked={true} />
                       <span className="text-zinc-200">Infantil</span>
                     </label>
                   </div>
@@ -1343,40 +951,16 @@ export default function Home() {
                 {tipoAlgodao === "comalgodao" && (
                   // Variações de Cores
                   <div className="flex gap-4">
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-masculino"
-                    >
-                      <input
-                        id="genero-masculino"
-                        type="checkbox"
-                        defaultChecked={true}
-                        {...register("cor_branco")}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-masculino">
+                      <input id="genero-masculino" type="checkbox" defaultChecked={true} {...register("cor_branco")} />
                       <span className="text-zinc-200">Branco</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-feminino"
-                    >
-                      <input
-                        id="genero-feminino"
-                        type="checkbox"
-                        defaultChecked={true}
-                        {...register("cor_preto")}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-feminino">
+                      <input id="genero-feminino" type="checkbox" defaultChecked={true} {...register("cor_preto")} />
                       <span className="text-zinc-200">Preto</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-infantil"
-                    >
-                      <input
-                        id="genero-infantil"
-                        type="checkbox"
-                        defaultChecked={true}
-                        {...register("cor_azul")}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-infantil">
+                      <input id="genero-infantil" type="checkbox" defaultChecked={true} {...register("cor_azul")} />
                       <span className="text-zinc-200">Azul</span>
                     </label>
                   </div>
@@ -1401,10 +985,7 @@ export default function Home() {
                 </label>
 
                 <div className="flex gap-4">
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="codigo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5 uppercase"
@@ -1414,10 +995,7 @@ export default function Home() {
                       {...register("codigo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="titulo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
@@ -1427,10 +1005,7 @@ export default function Home() {
                       {...register("titulo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="estoque"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
@@ -1440,10 +1015,7 @@ export default function Home() {
                       {...register("estoque")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="preco"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço ( R$ )
                     <input
                       className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
@@ -1507,11 +1079,9 @@ export default function Home() {
             {tipoDeProduto !== "" && (
               <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800">
                 <button
+                  onClick={() => setCarregando(true)}
                   type="submit"
-                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${
-                    carregando &&
-                    "pointer-events-none cursor-not-allowed opacity-5"
-                  }`}
+                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
                   {carregando ? (
                     <span className="flex justify-center items-center">
