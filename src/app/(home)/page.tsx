@@ -258,7 +258,7 @@ export default function Home() {
     if (codigoBling === null) iniciarOAuth();
 
     if (codigoBling !== "") getToken();
-  }, [codigoBling]);
+  });
 
   //Ações no Bling
   const getProdutos = async () => {
