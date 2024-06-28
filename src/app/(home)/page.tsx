@@ -522,7 +522,9 @@ export default function Home() {
 
     try {
       saveProdutos({
-        nome: "Produto de Teste Auto Generate",
+        nome: data.titulo,
+        codigo: data.codigo,
+        preco: parseFloat(data.preco),
         tipo: "P",
         situacao: "A",
         formato: "S",
