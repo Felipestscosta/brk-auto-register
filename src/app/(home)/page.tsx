@@ -1,19 +1,12 @@
 "use client";
 import { writeFileXLSX, utils } from "xlsx";
-import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 import Image from "next/image";
-import {
-  Barn,
-  BaseballCap,
-  CircleNotch,
-  FishSimple,
-  Hoodie,
-  Motorcycle,
-  TShirt,
-} from "@phosphor-icons/react";
+import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, Motorcycle, TShirt } from "@phosphor-icons/react";
+import { useSearchParams } from "next/navigation";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -237,10 +230,50 @@ const precos = {
 };
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const codigoBling = searchParams?.get("code");
+
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [carregando, setCarregando] = useState(false);
+  const [tokenBling, setTokenBling] = useState("");
   const [loja, setLoja] = useState("");
+
+  // Autenticação do Bling
+  const iniciarOAuth = async () => {
+    const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
+    const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
+    window.location.href = authUrl;
+  };
+
+  async function getToken() {
+    axios.get(`/api/get-bling-token?code=${codigoBling}`).then((data) => {
+      setTokenBling(data.data.access_token);
+    });
+  }
+
+  useEffect(() => {
+    if (codigoBling === null) iniciarOAuth();
+
+    if (codigoBling !== "" && tokenBling === "") getToken();
+  });
+
+  //Ações no Bling
+  const getProdutos = async () => {
+    setCarregando(false);
+    console.log("Token do Bling: ", tokenBling);
+    // if (tokenBling)
+    //   const response = await axios.get(
+    //     `/api/get-bling-produtos?token=${tokenBling}`
+    //   );
+  };
+
+  async function saveProdutos(data: any) {
+    setCarregando(false);
+
+    const response = await axios.post(`/api/get-bling-produtos?token=${tokenBling}`, data);
+    if (response.status === 201) alert("Produto Cadastrado com sucesso 🚀");
+  }
 
   //Caputura do Formulário
   const {
@@ -259,6 +292,10 @@ export default function Home() {
     var imagensFemininas: any = [];
     var imagensInfantis: any = [];
 
+    var imagensCorBranco: any = [];
+    var imagensCorPreto: any = [];
+    var imagensCorAzul: any = [];
+
     for (let i = 0; i < data.imagens.length; i++) {
       const file = data.imagens[i];
       const formData = new FormData();
@@ -266,19 +303,21 @@ export default function Home() {
       formData.append("upload_preset", "ml_default");
 
       try {
-        const response = await axios.post(
-          "https://api.cloudinary.com/v1_1/daruxsllg/image/upload",
-          formData
-        );
+        const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
 
-        if (file.name.toLowerCase().includes("masc"))
-          imagensMasculinas.push(response.data.secure_url);
+        // Imagens por Gênero...
+        if (file.name.toLowerCase().includes("masc")) imagensMasculinas.push(response.data.secure_url);
 
-        if (file.name.toLowerCase().includes("fem"))
-          imagensFemininas.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("fem")) imagensFemininas.push(response.data.secure_url);
 
-        if (file.name.toLowerCase().includes("inf"))
-          imagensInfantis.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("inf")) imagensInfantis.push(response.data.secure_url);
+
+        // Imagens por Cores
+        if (file.name.toLowerCase().includes("branco")) imagensCorBranco.push(response.data.secure_url);
+
+        if (file.name.toLowerCase().includes("preto")) imagensCorPreto.push(response.data.secure_url);
+
+        if (file.name.toLowerCase().includes("azul")) imagensCorAzul.push(response.data.secure_url);
 
         todasAsImagens.push(response.data.secure_url);
       } catch (error) {
@@ -312,8 +351,7 @@ export default function Home() {
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
             descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
             estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
-            preco:
-              item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+            preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
             produto_variacao: "Variação",
             tipo_producao: "Terceiros", // backlog Bling 1
             tipo_do_item: "Mercadoria para Revenda",
@@ -364,14 +402,15 @@ export default function Home() {
 
     if (tipoDeProduto === "camiseta") {
       if (tipoAlgodao === "semalgodao") {
+        console.log("informações do formulário: ", data);
+
         if (data.tamanho_masculino) {
           relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
               descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
               estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
-              preco:
-                item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+              preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
               produto_variacao: "Variação",
               tipo_producao: "Terceiros", // backlog Bling 1
               tipo_do_item: "Mercadoria para Revenda",
@@ -423,90 +462,82 @@ export default function Home() {
       if (tipoAlgodao === "comalgodao") {
         if (data.cor_branco) {
           relacaoDeCores[0].branco.tamanhos.map((item) => {
-            variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                item.tamanho
-              }`,
-              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
-              estoque:
-                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
-              preco:
-                item.tamanho === "G3" || item.tamanho === "G4"
-                  ? preco + 20
-                  : preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Algodão",
-            });
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+            }
           });
         }
 
         if (data.cor_preto) {
           relacaoDeCores[0].preto.tamanhos.map((item) => {
-            variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                item.tamanho
-              }`,
-              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
-              estoque:
-                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
-              preco:
-                item.tamanho === "G3" || item.tamanho === "G4"
-                  ? preco + 20
-                  : preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Algodão",
-            });
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensCorPreto.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+            }
           });
         }
 
         if (data.cor_azul) {
           relacaoDeCores[0].azul.tamanhos.map((item) => {
-            variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${
-                item.tamanho
-              }`,
-              descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
-              estoque:
-                item.tamanho === "G3" || item.tamanho === "G4" ? 0 : estoque,
-              preco:
-                item.tamanho === "G3" || item.tamanho === "G4"
-                  ? preco + 20
-                  : preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Algodão",
-            });
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                marca: "Brk Agro", // backlog Loja
+                url_imagens_externas: imagensCorAzul.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+            }
           });
         }
       }
     }
 
-    // console.log(variacaoDeProduto);
-
     try {
-      geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+      saveProdutos({
+        nome: "Produto de Teste Auto Generate",
+        tipo: "P",
+        situacao: "A",
+        formato: "S",
+      });
+      //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+      setCarregando(false);
     } catch (error) {
-      alert("Opa, houve um problema na geração da planilha. Chama o dev 😒");
+      alert(`Opa, houve um problema na geração da planilha. Chama o dev 😒: ${error}`);
       setCarregando(false);
     }
   };
 
   // Planinha
   async function geraPlanilha(dadosDaPlanilha: any, codigoProduto: string) {
+    // Gera Planilha do Bling 3
     const rows = Array.from(dadosDaPlanilha).map((row: any) => ({
       ID: "",
       Código: row.codigo, // Dinâmico
@@ -546,7 +577,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: loja, // Dinâmico row.marca
+      Marca: (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -570,40 +601,100 @@ export default function Home() {
     }));
 
     const worksheet = utils.json_to_sheet(rows);
-
     const workbook = utils.book_new();
+
     utils.book_append_sheet(workbook, worksheet, "");
+
     writeFileXLSX(workbook, `${codigoProduto}-bling-3.xlsx`, {
       compression: true,
     });
 
+    // Gera Planilha do Bling 1
+    const rowsBling1 = Array.from(dadosDaPlanilha).map((row: any) => ({
+      ID: "",
+      Código: row.codigo, // Dinâmico
+      Descrição: row.descricao, // Dinâmico
+      Unidade: "UN",
+      NCM: "6101.30.00",
+      Origem: parseFloat("0"),
+      Preço: row.preco, // Dinâmico
+      "Valor IPI fixo": parseFloat("0"),
+      Observações: "",
+      Situação: "Ativo",
+      Estoque: parseFloat("0"), // Dinâmico
+      "Preço de custo": parseFloat("55"),
+      "Cód. no fornecedor": "",
+      Fornecedor: "",
+      Localização: "",
+      "Estoque máximo": parseFloat("0"),
+      "Estoque mínimo": parseFloat("0"),
+      "Peso líquido (Kg)": "0,250",
+      "Peso bruto (Kg)": "0,250",
+      "GTIN/EAN": "", // Dinâmico
+      "GTIN/EAN da Embalagem": "", // Dinâmico
+      "Largura do produto": parseFloat("1"),
+      "Altura do Produto": parseFloat("11"),
+      "Profundidade do produto": parseFloat("16"),
+      "Data Validade": "",
+      "Descrição do Produto no Fornecedor": "",
+      "Descrição Complementar": "",
+      "Itens p/ caixa": parseFloat("1"),
+      "Produto Variação": row.produto_variacao, // Dinâmico
+      "Tipo Produção": "Própria", // Dinâmico
+      "Classe de enquadramento do IPI": "",
+      "Código na Lista de Serviços": "",
+      "Tipo do item": "Produto Acabado", // Dinâmico
+      "Grupo de Tags/Tags": "",
+      Tributos: parseFloat("0"),
+      "Código Pai": row.codigo_pai, // Dinâmico
+      "Código Integração": parseFloat("0"),
+      "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
+      Marca: (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      CEST: "28.038.00",
+      Volumes: parseFloat("1"),
+      "Descrição Curta": "",
+      "Cross-Docking": "",
+      "URL Imagens Externas": row.url_imagens_externas, // Dinâmico
+      "Link Externo": "",
+      "Meses Garantia no Fornecedor": parseFloat("0"),
+      "Clonar dados do pai": "NÂO",
+      "Condição do Produto": "NOVO",
+      "Frete Grátis": "NÂO",
+      "Número FCI": "",
+      Vídeo: "",
+      Departamento: "",
+      "Unidade de Medida": "Centímetro",
+      "Preço de Compra": parseFloat("0"),
+      "Valor base ICMS ST para retenção": parseFloat("0"),
+      "Valor ICMS ST para retenção": parseFloat("0"),
+      "Valor ICMS próprio do substituto": parseFloat("0"),
+      "Categoria do produto": "",
+      "Informações Adicionais": "",
+    }));
+
+    const worksheetBling1 = utils.json_to_sheet(rowsBling1);
+    const workbookBling1 = utils.book_new();
+
+    utils.book_append_sheet(workbookBling1, worksheetBling1);
+
+    writeFileXLSX(workbookBling1, `${codigoProduto}-bling-1.xlsx`);
+
     setCarregando(false);
   }
 
-  //geraPlanilha();
-  console.log(loja);
-
   return (
     <>
-      <div className="relative flex flex-col h-full w-full items-center justify-center gap-24 bg-gradient-to-r from-zinc-800 to-zinc-950 overflow-hidden">
+      <div className="relative flex flex-col h-full w-full items-center justify-center gap-4 bg-gradient-to-r from-zinc-800 to-zinc-950 overflow-hidden">
         <Image
           src={`/camisa.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
-            tipoDeProduto === "camisa"
-              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
-              : "opacity-0 translate-x-10 translate-y-10"
-          }`}
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${tipoDeProduto === "camisa" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
           width={900}
           height={900}
           alt=""
         />
         <Image
           src={`/camiseta.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
-            tipoDeProduto === "camiseta"
-              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
-              : "opacity-0 translate-x-10 translate-y-10"
-          }`}
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${tipoDeProduto === "camiseta" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
           width={900}
           height={900}
           alt=""
@@ -611,30 +702,14 @@ export default function Home() {
 
         {/* Escolha de Loja */}
         <div className="flex justify-center align-center z-10">
-          <button
-            onClick={() => setLoja("agro")}
-            type="button"
-            className={`flex flex-col gap-1 items-center justify-center py-2 px-6`}
-          >
-            <span
-              className={`flex flex-col items-center justify-center ${
-                loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"
-              } `}
-            >
+          <button onClick={() => setLoja("agro")} type="button" className={`flex flex-col gap-1 items-center justify-center py-2 px-6`}>
+            <span className={`flex flex-col items-center justify-center ${loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <Barn className="" size={32} />
               BRK Agro
             </span>
           </button>
-          <button
-            onClick={() => setLoja("fishing")}
-            type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6`}
-          >
-            <span
-              className={`flex flex-col items-center justify-center ${
-                loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"
-              } `}
-            >
+          <button onClick={() => setLoja("fishing")} type="button" className={`flex flex-col gap-2 items-center justify-center py-2 px-6`}>
+            <span className={`flex flex-col items-center justify-center ${loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <FishSimple size={32} />
               BRK Fishing
             </span>
@@ -642,29 +717,22 @@ export default function Home() {
           <button
             onClick={() => setLoja("motors")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg ${
-              loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
-            }`}
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"}`}
           >
-            <span
-              className={`flex flex-col items-center justify-center ${
-                loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
-              } `}
-            >
+            <span className={`flex flex-col items-center justify-center ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <Motorcycle size={32} />
               BRK Motors
             </span>
           </button>
         </div>
+
         {/* Escolha do Produto */}
         <div className="absolute right-0 flex flex-col justify-center align-center divide-y z-10">
           <button
             onClick={() => setTipoDeProduto("camisa")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-6 px-2 rounded-tl-lg  ${
-              tipoDeProduto === "camisa"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "camisa" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <Hoodie size={32} />
@@ -674,9 +742,7 @@ export default function Home() {
             onClick={() => setTipoDeProduto("camiseta")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${
-              tipoDeProduto === "camiseta"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "camiseta" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <TShirt size={32} />
@@ -685,11 +751,7 @@ export default function Home() {
           <button
             onClick={() => setTipoDeProduto("bone")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${
-              tipoDeProduto === "bone"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
-            } opacity-15 pointer-events-none`}
+            className={`flex flex-col gap-2 items-center justify-center py-6 px-2 ${tipoDeProduto === "bone" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"}`}
           >
             <BaseballCap size={32} />
             Boné
@@ -698,21 +760,17 @@ export default function Home() {
             onClick={() => setTipoDeProduto("cortavento")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-6 px-2 rounded-bl-lg ${
-              tipoDeProduto === "cortavento"
-                ? "bg-slate-200 text-zinc-950"
-                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "cortavento" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             } opacity-15 pointer-events-none`}
           >
             <Hoodie size={32} />
             Corta-vento
           </button>
         </div>
+
         {/* Formulários */}
         <div className="flex z-10">
-          <form
-            className="flex flex-col justify-center items-center gap-10"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="flex flex-col justify-center items-center gap-10" onSubmit={handleSubmit(onSubmit)}>
             {tipoDeProduto === "camisa" && (
               <>
                 <label
@@ -730,10 +788,7 @@ export default function Home() {
                 </label>
 
                 <div className="flex gap-10 mb-16">
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="codigo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
@@ -744,10 +799,7 @@ export default function Home() {
                       {...register("codigo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="titulo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -758,10 +810,7 @@ export default function Home() {
                       {...register("titulo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="estoque"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -773,10 +822,7 @@ export default function Home() {
                       {...register("estoque")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="preco"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço ( R$ )
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -791,40 +837,16 @@ export default function Home() {
 
                 {/* Variações de Gêneros */}
                 <div className="flex gap-4">
-                  <label
-                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                    htmlFor="tamanho-masculino"
-                  >
-                    <input
-                      id="tamanho-masculino"
-                      type="checkbox"
-                      {...register("tamanho_masculino")}
-                      defaultChecked={true}
-                    />
+                  <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-masculino">
+                    <input id="tamanho-masculino" type="checkbox" {...register("tamanho_masculino")} defaultChecked={true} />
                     <span className="text-zinc-200">Masculino</span>
                   </label>
-                  <label
-                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                    htmlFor="tamanho-feminino"
-                  >
-                    <input
-                      id="tamanho-feminino"
-                      type="checkbox"
-                      {...register("tamanho_feminino")}
-                      defaultChecked={true}
-                    />
+                  <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-feminino">
+                    <input id="tamanho-feminino" type="checkbox" {...register("tamanho_feminino")} defaultChecked={true} />
                     <span className="text-zinc-200">Feminino</span>
                   </label>
-                  <label
-                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                    htmlFor="tamanho-infantil"
-                  >
-                    <input
-                      id="tamanho-infantil"
-                      type="checkbox"
-                      {...register("tamanho_infantil")}
-                      defaultChecked={true}
-                    />
+                  <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-infantil">
+                    <input id="tamanho-infantil" type="checkbox" {...register("tamanho_infantil")} defaultChecked={true} />
                     <span className="text-zinc-200">Infantil</span>
                   </label>
                 </div>
@@ -837,21 +859,11 @@ export default function Home() {
                   className="flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg"
                   htmlFor="imagens"
                 >
-                  <input
-                    className="cursor-pointer text-zinc-200"
-                    type="file"
-                    id="imagens"
-                    multiple
-                    required
-                    {...register("imagens")}
-                  />
+                  <input className="cursor-pointer text-zinc-200" type="file" id="imagens" multiple required {...register("imagens")} />
                 </label>
 
                 <div className="flex gap-10 mb-16">
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="codigo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
@@ -863,10 +875,7 @@ export default function Home() {
                     />
                   </label>
 
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="titulo"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -877,10 +886,7 @@ export default function Home() {
                       {...register("titulo")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="estoque"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -892,10 +898,7 @@ export default function Home() {
                       {...register("estoque")}
                     />
                   </label>
-                  <label
-                    className="flex flex-col gap-2 text-zinc-200"
-                    htmlFor="preco"
-                  >
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço ( R$ )
                     <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -912,22 +915,14 @@ export default function Home() {
                   <button
                     onClick={() => setTipoAlgodao("comalgodao")}
                     type="button"
-                    className={`pb-2 text-zinc-200 ${
-                      tipoAlgodao === "comalgodao"
-                        ? "border-b b-zinc-200"
-                        : "border-b border-transparent hover:border-b hover:border-zinc-200"
-                    }`}
+                    className={`pb-2 text-zinc-200 ${tipoAlgodao === "comalgodao" ? "border-b b-zinc-200" : "border-b border-transparent hover:border-b hover:border-zinc-200"}`}
                   >
                     Com Algodão Egípcio
                   </button>
                   <button
                     onClick={() => setTipoAlgodao("semalgodao")}
                     type="button"
-                    className={`pb-2 text-zinc-200 ${
-                      tipoAlgodao === "semalgodao"
-                        ? "border-b b-zinc-200"
-                        : "border-b border-transparent hover:border-b hover:border-zinc-200"
-                    }`}
+                    className={`pb-2 text-zinc-200 ${tipoAlgodao === "semalgodao" ? "border-b b-zinc-200" : "border-b border-transparent hover:border-b hover:border-zinc-200"}`}
                   >
                     Sem Algodão Egípcio
                   </button>
@@ -936,40 +931,16 @@ export default function Home() {
                 {tipoAlgodao === "semalgodao" && (
                   // Variações de Gêneros
                   <div className="flex gap-4">
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-masculino"
-                    >
-                      <input
-                        id="genero-masculino"
-                        type="checkbox"
-                        name=""
-                        defaultChecked={true}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-masculino">
+                      <input id="genero-masculino" type="checkbox" {...register("tamanho_masculino")} defaultChecked={true} />
                       <span className="text-zinc-200">Masculino</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-feminino"
-                    >
-                      <input
-                        id="genero-feminino"
-                        type="checkbox"
-                        name=""
-                        defaultChecked={true}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-feminino">
+                      <input id="genero-feminino" type="checkbox" {...register("tamanho_feminino")} defaultChecked={true} />
                       <span className="text-zinc-200">Feminino</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-infantil"
-                    >
-                      <input
-                        id="genero-infantil"
-                        type="checkbox"
-                        name=""
-                        defaultChecked={true}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-infantil">
+                      <input id="genero-infantil" type="checkbox" {...register("tamanho_infantil")} defaultChecked={true} />
                       <span className="text-zinc-200">Infantil</span>
                     </label>
                   </div>
@@ -978,40 +949,16 @@ export default function Home() {
                 {tipoAlgodao === "comalgodao" && (
                   // Variações de Cores
                   <div className="flex gap-4">
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-masculino"
-                    >
-                      <input
-                        id="genero-masculino"
-                        type="checkbox"
-                        defaultChecked={true}
-                        {...register("cor_branco")}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-masculino">
+                      <input id="genero-masculino" type="checkbox" defaultChecked={true} {...register("cor_branco")} />
                       <span className="text-zinc-200">Branco</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-feminino"
-                    >
-                      <input
-                        id="genero-feminino"
-                        type="checkbox"
-                        defaultChecked={true}
-                        {...register("cor_preto")}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-feminino">
+                      <input id="genero-feminino" type="checkbox" defaultChecked={true} {...register("cor_preto")} />
                       <span className="text-zinc-200">Preto</span>
                     </label>
-                    <label
-                      className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
-                      htmlFor="genero-infantil"
-                    >
-                      <input
-                        id="genero-infantil"
-                        type="checkbox"
-                        defaultChecked={true}
-                        {...register("cor_azul")}
-                      />
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-infantil">
+                      <input id="genero-infantil" type="checkbox" defaultChecked={true} {...register("cor_azul")} />
                       <span className="text-zinc-200">Azul</span>
                     </label>
                   </div>
@@ -1021,44 +968,60 @@ export default function Home() {
 
             {tipoDeProduto === "bone" && (
               <>
-                <input type="file" name="" id="" multiple />
+                <label
+                  className="flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg"
+                  htmlFor="imagens"
+                >
+                  <input
+                    className="cursor-pointer text-zinc-200"
+                    type="file"
+                    id="imagens"
+                    multiple
+                    // required
+                    {...register("imagens")}
+                  />
+                </label>
 
                 <div className="flex gap-4">
-                  <label className="flex flex-col gap-2" htmlFor="codigo">
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
                     Código
                     <input
                       className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5 uppercase"
                       id="codigo"
                       type="text"
                       placeholder="Ex: BA0..."
+                      {...register("codigo")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="titulo">
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
                     Titulo
                     <input
                       className="min-w-96 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
                       id="titulo"
                       type="text"
                       placeholder="Ex: Boné Agro Brk..."
+                      {...register("titulo")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="estoque">
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
                     Estoque
                     <input
                       className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
                       id="estoque"
                       type="text"
                       placeholder="Ex: C0..."
-                      defaultValue={1000}
+                      {...register("estoque")}
                     />
                   </label>
-                  <label className="flex flex-col gap-2" htmlFor="preco">
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço ( R$ )
                     <input
                       className="max-w-32 bg-transparent text-zinc-200 placeholder:text-sm border-b border-r-0 border-l-0 border-t-0 py-1.5"
-                      id="preco"
+                      itemID="preco"
                       type="text"
-                      defaultValue={precos.bone}
+                      required
+                      placeholder={`${precos.bone}`}
+                      {...register("preco")}
                     />
                   </label>
                 </div>
@@ -1112,13 +1075,11 @@ export default function Home() {
             )}
 
             {tipoDeProduto !== "" && (
-              <div className="flex container items-center justify-center mt-32 pt-10 py-2 px-10 border-t border-zinc-800">
+              <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800">
                 <button
+                  onClick={() => setCarregando(true)}
                   type="submit"
-                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${
-                    carregando &&
-                    "pointer-events-none cursor-not-allowed opacity-5"
-                  }`}
+                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
                   {carregando ? (
                     <span className="flex justify-center items-center">
