@@ -21,11 +21,12 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       }
     })
 
-    console.log('Retorno da Requisiçãoo::::::::::::::::', response)
+    //console.log('Retorno da Requisiçãoo::::::::::::::::', response)
 
     res.status(200).json(response.data);
-  } catch (error) {
-    console.error('Erro ao obter token:', error);
-    res.status(500).json({ error: 'Erro ao obter token' });
+  } catch (err) {
+    const erroResposta = err.response.data.error.type;
+
+    res.status(500).json({ error: erroResposta });
   }
 }

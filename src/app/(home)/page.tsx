@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 import Image from "next/image";
-import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, Motorcycle, TShirt } from "@phosphor-icons/react";
+import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, TShirt } from "@phosphor-icons/react";
 import { useSearchParams } from "next/navigation";
 
 type esquemaDeDadosFormulario = {
@@ -238,17 +238,27 @@ export default function Home() {
   const [carregando, setCarregando] = useState(false);
   const [tokenBling, setTokenBling] = useState("");
   const [loja, setLoja] = useState("");
+  const [tipoCadastro, setTipoCadastro] = useState("");
 
   // Autenticação do Bling
   const iniciarOAuth = async () => {
     const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
-    const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
+    //const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
+    const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
+
     window.location.href = authUrl;
   };
 
   async function getToken() {
-    axios.get(`/api/get-bling-token?code=${codigoBling}`).then((data) => {
-      setTokenBling(data.data.access_token);
+    const resGeraToken: any = await axios.get(`/api/get-bling-token?code=${codigoBling}`).then((res: any) => {
+      console.log(res);
+      console.log(res.data.access_token);
+      console.log("Console se tiver erro:", res.error);
+      if (res.error === undefined) {
+        setTokenBling(res.data.access_token);
+      } else {
+        alert("Ops! Houve um problema na geração do Token ⛔");
+      }
     });
   }
 
@@ -288,6 +298,7 @@ export default function Home() {
 
     // Processamento das Imagens
     let todasAsImagens = [];
+    let todasAsImagensExternas = [];
     var imagensMasculinas: any = [];
     var imagensFemininas: any = [];
     var imagensInfantis: any = [];
@@ -320,6 +331,7 @@ export default function Home() {
         if (file.name.toLowerCase().includes("azul")) imagensCorAzul.push(response.data.secure_url);
 
         todasAsImagens.push(response.data.secure_url);
+        todasAsImagensExternas.push({ link: response.data.secure_url });
       } catch (error) {
         console.error("Erro no Upload da Imagem: ", error);
       }
@@ -521,18 +533,33 @@ export default function Home() {
     }
 
     try {
-      saveProdutos({
-        nome: data.titulo,
-        codigo: data.codigo,
-        preco: parseFloat(data.preco),
-        tipo: "P",
-        situacao: "A",
-        formato: "S",
-      });
-      //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+      if (tipoCadastro === "planilha") {
+        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+      } else if (tipoCadastro === "bling") {
+        saveProdutos({
+          nome: data.titulo,
+          codigo: data.codigo,
+          preco: parseFloat(data.preco),
+          tipo: "P",
+          situacao: "A",
+          formato: "S",
+          estoque: {
+            minimo: 0,
+            maximo: data.estoque,
+          },
+          midia: {
+            video: {
+              url: "https://www.youtube.com/watch?v=1",
+            },
+            imagens: {
+              externas: todasAsImagensExternas,
+            },
+          },
+        });
+      }
       setCarregando(false);
     } catch (error) {
-      alert(`Opa, houve um problema na geração da planilha. Chama o dev 😒: ${error}`);
+      alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
       setCarregando(false);
     }
   };
@@ -1077,9 +1104,12 @@ export default function Home() {
             )}
 
             {tipoDeProduto !== "" && (
-              <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800">
+              <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800 gap-8">
                 <button
-                  onClick={() => setCarregando(true)}
+                  onClick={() => {
+                    setCarregando(true);
+                    setTipoCadastro("planilha");
+                  }}
                   type="submit"
                   className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
@@ -1089,7 +1119,29 @@ export default function Home() {
                       Processando...
                     </span>
                   ) : (
-                    "Gerar Planilha"
+                    <span className="flex justify-center items-center gap-2">
+                      <MicrosoftExcelLogo size={32} /> Gerar Planilha
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => {
+                    setCarregando(true);
+                    setTipoCadastro("bling");
+                  }}
+                  type="submit"
+                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                >
+                  {carregando ? (
+                    <span className="flex justify-center items-center">
+                      <CircleNotch size={20} className="animate-spin mr-4" />
+                      Processando...
+                    </span>
+                  ) : (
+                    <span className="flex justify-center items-center gap-2">
+                      <ListPlus size={32} /> Cadastrar
+                    </span>
                   )}
                 </button>
               </div>
