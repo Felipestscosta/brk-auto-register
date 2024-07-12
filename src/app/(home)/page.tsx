@@ -337,7 +337,7 @@ export default function Home() {
       }
     }
 
-    //Infomações da Planilha
+    // Dados da Planilha
     var preco = parseFloat(data.preco);
     var estoque = parseInt(data.estoque);
     const primeiraLinhaDaPlanilha = [
@@ -356,9 +356,12 @@ export default function Home() {
     ];
 
     var variacaoDeProduto: any = [...primeiraLinhaDaPlanilha];
+
+    var dataVariacoes: any = [];
     if (tipoDeProduto === "camisa") {
       if (data.tamanho_masculino) {
         relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
+          //Variacoes para Planilha
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
             descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
@@ -372,11 +375,36 @@ export default function Home() {
             url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
             grupo_de_produtos: "Camisa Master",
           });
+
+          // Dados Bling
+          dataVariacoes.push({
+            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+            formato: "S",
+            gtin: "1234567890123",
+            gtinEmbalagem: "1234567890123",
+            midia: {
+              imagens: {
+                externas: [
+                  {
+                    link: "https://shutterstock.com/lalala123",
+                  },
+                ],
+              },
+            },
+            variacao: {
+              nome: "Tamanho:G",
+              ordem: 1,
+              produtoPai: {
+                cloneInfo: true,
+              },
+            },
+          });
         });
       }
 
       if (data.tamanho_feminino) {
         relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
+          //Variacoes para Planilha
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
             descricao: `Gênero: Feminino;Tamanho: ${item.nome}`,
@@ -531,31 +559,60 @@ export default function Home() {
         }
       }
     }
+    // Fim dos Dados para Planilha
+
+    // Dados para o Bling
+    const dadosBling = {
+      nome: data.titulo,
+      codigo: data.codigo.toLocaleUpperCase(),
+      preco: preco,
+      tipo: "P",
+      situacao: "A",
+      formato: "V",
+      descricaoCurta: "Descrição curta",
+      unidade: "UN",
+      pesoLiquido: 1,
+      pesoBruto: 1,
+      volumes: 1,
+      itensPorCaixa: 1,
+      gtin: "7794051852802",
+      gtinEmbalagem: "7794051852802",
+      tipoProducao: "P",
+      condicao: 0,
+      freteGratis: false,
+      marca: "Brk Fishing",
+      descricaoComplementar: "Descrição complementar",
+      dimensoes: {
+        largura: 1,
+        altura: 10,
+        profundidade: 16,
+        unidadeMedida: 1,
+      },
+      tributacao: {
+        origem: 0,
+        ncm: "6101.30.00",
+        cest: "28.038.00",
+        codigoListaServicos: "",
+        spedTipoItem: "",
+        codigoItem: "",
+        valorBaseStRetencao: 0,
+        valorStRetencao: 0,
+        valorICMSSubstituto: 0,
+      },
+      midia: {
+        imagens: {
+          externas: [todasAsImagensExternas],
+        },
+      },
+      variacoes: dataVariacoes,
+    };
+    // Fim dos Dados para o Bling
 
     try {
       if (tipoCadastro === "planilha") {
         geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
-        saveProdutos({
-          nome: data.titulo,
-          codigo: data.codigo,
-          preco: parseFloat(data.preco),
-          tipo: "P",
-          situacao: "A",
-          formato: "S",
-          estoque: {
-            minimo: 0,
-            maximo: data.estoque,
-          },
-          midia: {
-            video: {
-              url: "https://www.youtube.com/watch?v=1",
-            },
-            imagens: {
-              externas: todasAsImagensExternas,
-            },
-          },
-        });
+        saveProdutos(dadosBling);
       }
       setCarregando(false);
     } catch (error) {
