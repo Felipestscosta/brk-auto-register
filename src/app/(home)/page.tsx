@@ -297,8 +297,19 @@ export default function Home() {
     setCarregando(true);
 
     // Processamento das Imagens
+
+    //Imagens Bling
+    let todasAsImagensBling = [];
+    var imagensMasculinasBling: any = [];
+    var imagensFemininasBling: any = [];
+    var imagensInfantisBling: any = [];
+
+    var imagensCorBrancoBling: any = [];
+    var imagensCorPretoBling: any = [];
+    var imagensCorAzulBling: any = [];
+
+    //Imagens Planilha
     let todasAsImagens = [];
-    let todasAsImagensExternas = [];
     var imagensMasculinas: any = [];
     var imagensFemininas: any = [];
     var imagensInfantis: any = [];
@@ -317,21 +328,40 @@ export default function Home() {
         const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
 
         // Imagens por Gênero...
-        if (file.name.toLowerCase().includes("masc")) imagensMasculinas.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("masc")) {
+          imagensMasculinas.push(response.data.secure_url);
+          imagensMasculinasBling.push({ link: response.data.secure_url });
+        }
 
-        if (file.name.toLowerCase().includes("fem")) imagensFemininas.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("fem")) {
+          imagensFemininas.push(response.data.secure_url);
+          imagensFemininasBling.push({ link: response.data.secure_url });
+        }
 
-        if (file.name.toLowerCase().includes("inf")) imagensInfantis.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("inf")) {
+          imagensInfantis.push(response.data.secure_url);
+          imagensInfantisBling.push({ link: response.data.secure_url });
+        }
 
         // Imagens por Cores
-        if (file.name.toLowerCase().includes("branco")) imagensCorBranco.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("branco")) {
+          imagensCorBranco.push(response.data.secure_url);
+          imagensCorBrancoBling.push({ link: response.data.secure_url });
+        }
 
-        if (file.name.toLowerCase().includes("preto")) imagensCorPreto.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("preto")) {
+          imagensCorPreto.push(response.data.secure_url);
+          imagensCorPretoBling.push({ link: response.data.secure_url });
+        }
 
-        if (file.name.toLowerCase().includes("azul")) imagensCorAzul.push(response.data.secure_url);
+        if (file.name.toLowerCase().includes("azul")) {
+          imagensCorAzul.push(response.data.secure_url);
+          imagensCorAzulBling.push({ link: response.data.secure_url });
+        }
 
         todasAsImagens.push(response.data.secure_url);
-        todasAsImagensExternas.push({ link: response.data.secure_url });
+
+        todasAsImagensBling.push({ link: response.data.secure_url });
       } catch (error) {
         console.error("Erro no Upload da Imagem: ", error);
       }
@@ -357,7 +387,7 @@ export default function Home() {
 
     var variacaoDeProduto: any = [...primeiraLinhaDaPlanilha];
 
-    var dataVariacoes: any = [];
+    var dadosVariacoesBling: any = [];
     if (tipoDeProduto === "camisa") {
       if (data.tamanho_masculino) {
         relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
@@ -377,22 +407,18 @@ export default function Home() {
           });
 
           // Dados Bling
-          dataVariacoes.push({
+          dadosVariacoesBling.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
             formato: "S",
             gtin: "1234567890123",
             gtinEmbalagem: "1234567890123",
             midia: {
               imagens: {
-                externas: [
-                  {
-                    link: "https://shutterstock.com/lalala123",
-                  },
-                ],
+                externas: imagensMasculinasBling,
               },
             },
             variacao: {
-              nome: "Tamanho:G",
+              nome: `Gênero: Masculino;Tamanho: ${item.nome}`,
               ordem: 1,
               produtoPai: {
                 cloneInfo: true,
@@ -418,6 +444,26 @@ export default function Home() {
             url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
             grupo_de_produtos: "Camisa Master",
           });
+
+          // Dados Bling
+          dadosVariacoesBling.push({
+            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+            formato: "S",
+            gtin: "1234567890123",
+            gtinEmbalagem: "1234567890123",
+            midia: {
+              imagens: {
+                externas: imagensFemininasBling,
+              },
+            },
+            variacao: {
+              nome: `Gênero: Feminino;Tamanho: ${item.nome}`,
+              ordem: 1,
+              produtoPai: {
+                cloneInfo: true,
+              },
+            },
+          });
         });
       }
 
@@ -435,6 +481,26 @@ export default function Home() {
             marca: "Brk Agro", // backlog Loja
             url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
             grupo_de_produtos: "Camisa Master",
+          });
+
+          // Dados Bling
+          dadosVariacoesBling.push({
+            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+            formato: "S",
+            gtin: "1234567890123",
+            gtinEmbalagem: "1234567890123",
+            midia: {
+              imagens: {
+                externas: imagensInfantisBling,
+              },
+            },
+            variacao: {
+              nome: `Gênero: Infantil;Tamanho: ${item.nome}`,
+              ordem: 1,
+              produtoPai: {
+                cloneInfo: true,
+              },
+            },
           });
         });
       }
@@ -459,6 +525,26 @@ export default function Home() {
               url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
               grupo_de_produtos: "Camiseta Casual",
             });
+
+            // Dados Bling
+            dadosVariacoesBling.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              formato: "S",
+              gtin: "1234567890123",
+              gtinEmbalagem: "1234567890123",
+              midia: {
+                imagens: {
+                  externas: imagensMasculinasBling,
+                },
+              },
+              variacao: {
+                nome: `Gênero: Masculino;Tamanho: ${item.nome}`,
+                ordem: 1,
+                produtoPai: {
+                  cloneInfo: true,
+                },
+              },
+            });
           });
         }
 
@@ -477,6 +563,26 @@ export default function Home() {
               url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
               grupo_de_produtos: "Camiseta Casual",
             });
+
+            // Dados Bling
+            dadosVariacoesBling.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              formato: "S",
+              gtin: "1234567890123",
+              gtinEmbalagem: "1234567890123",
+              midia: {
+                imagens: {
+                  externas: imagensFemininasBling,
+                },
+              },
+              variacao: {
+                nome: `Gênero: Feminino;Tamanho: ${item.nome}`,
+                ordem: 1,
+                produtoPai: {
+                  cloneInfo: true,
+                },
+              },
+            });
           });
         }
 
@@ -494,6 +600,26 @@ export default function Home() {
               marca: "Brk Agro", // backlog Loja
               url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
               grupo_de_produtos: "Camiseta Casual",
+            });
+
+            // Dados Bling
+            dadosVariacoesBling.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              formato: "S",
+              gtin: "1234567890123",
+              gtinEmbalagem: "1234567890123",
+              midia: {
+                imagens: {
+                  externas: imagensInfantisBling,
+                },
+              },
+              variacao: {
+                nome: `Gênero: Infantil;Tamanho: ${item.nome}`,
+                ordem: 1,
+                produtoPai: {
+                  cloneInfo: true,
+                },
+              },
             });
           });
         }
@@ -515,6 +641,26 @@ export default function Home() {
                 url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
                 grupo_de_produtos: "Camiseta Algodão",
               });
+
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                formato: "S",
+                gtin: "1234567890123",
+                gtinEmbalagem: "1234567890123",
+                midia: {
+                  imagens: {
+                    externas: imagensCorBrancoBling,
+                  },
+                },
+                variacao: {
+                  nome: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: true,
+                  },
+                },
+              });
             }
           });
         }
@@ -535,6 +681,26 @@ export default function Home() {
                 grupo_de_produtos: "Camiseta Algodão",
               });
             }
+
+            // Dados Bling
+            dadosVariacoesBling.push({
+              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+              formato: "S",
+              gtin: "1234567890123",
+              gtinEmbalagem: "1234567890123",
+              midia: {
+                imagens: {
+                  externas: imagensCorPretoBling,
+                },
+              },
+              variacao: {
+                nome: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                ordem: 1,
+                produtoPai: {
+                  cloneInfo: true,
+                },
+              },
+            });
           });
         }
 
@@ -554,14 +720,32 @@ export default function Home() {
                 url_imagens_externas: imagensCorAzul.join("|"), //backlog clodinary,
                 grupo_de_produtos: "Camiseta Algodão",
               });
+
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                formato: "S",
+                gtin: "1234567890123",
+                gtinEmbalagem: "1234567890123",
+                midia: {
+                  imagens: {
+                    externas: imagensCorAzulBling,
+                  },
+                },
+                variacao: {
+                  nome: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: true,
+                  },
+                },
+              });
             }
           });
         }
       }
     }
-    // Fim dos Dados para Planilha
 
-    // Dados para o Bling
     const dadosBling = {
       nome: data.titulo,
       codigo: data.codigo.toLocaleUpperCase(),
@@ -580,7 +764,7 @@ export default function Home() {
       tipoProducao: "P",
       condicao: 0,
       freteGratis: false,
-      marca: "Brk Fishing",
+      marca: "Marca",
       descricaoComplementar: "Descrição complementar",
       dimensoes: {
         largura: 1,
@@ -588,6 +772,7 @@ export default function Home() {
         profundidade: 16,
         unidadeMedida: 1,
       },
+      actionEstoque: "T",
       tributacao: {
         origem: 0,
         ncm: "6101.30.00",
@@ -601,17 +786,17 @@ export default function Home() {
       },
       midia: {
         imagens: {
-          externas: [todasAsImagensExternas],
+          externas: todasAsImagensBling,
         },
       },
-      variacoes: dataVariacoes,
+      variacoes: dadosVariacoesBling,
     };
-    // Fim dos Dados para o Bling
 
     try {
       if (tipoCadastro === "planilha") {
         geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
+        console.log(dadosBling);
         saveProdutos(dadosBling);
       }
       setCarregando(false);

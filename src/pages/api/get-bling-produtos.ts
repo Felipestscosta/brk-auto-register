@@ -71,6 +71,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
       res.status(201).json({ produto_cadastrado: idProduto });
     } catch (error) {
+      console.log(error.response)
       res.status(500).json({ erro: error });
     }
   }
