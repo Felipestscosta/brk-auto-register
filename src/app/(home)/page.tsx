@@ -241,26 +241,26 @@ export default function Home() {
   const [tipoCadastro, setTipoCadastro] = useState("");
 
   // Autenticação do Bling
-  const iniciarOAuth = async () => {
-    const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
-    //const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
-    const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
+  // const iniciarOAuth = async () => {
+  //   const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
+  //   //const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
+  //   const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
 
-    window.location.href = authUrl;
-  };
+  //   window.location.href = authUrl;
+  // };
 
-  async function getToken() {
-    const resGeraToken: any = await axios.get(`/api/get-bling-token?code=${codigoBling}`).then((res: any) => {
-      console.log(res);
-      console.log(res.data.access_token);
-      console.log("Console se tiver erro:", res.error);
-      if (res.error === undefined) {
-        setTokenBling(res.data.access_token);
-      } else {
-        alert("Ops! Houve um problema na geração do Token ⛔");
-      }
-    });
-  }
+  // async function getToken() {
+  //   const resGeraToken: any = await axios.get(`/api/get-bling-token?code=${codigoBling}`).then((res: any) => {
+  //     console.log(res);
+  //     console.log(res.data.access_token);
+  //     console.log("Console se tiver erro:", res.error);
+  //     if (res.error === undefined) {
+  //       setTokenBling(res.data.access_token);
+  //     } else {
+  //       alert("Ops! Houve um problema na geração do Token ⛔");
+  //     }
+  //   });
+  // }
 
   useEffect(() => {
     // if (codigoBling === null) iniciarOAuth();
