@@ -791,18 +791,19 @@ export default function Home() {
       variacoes: dadosVariacoesBling,
     };
 
-    try {
-      if (tipoCadastro === "planilha") {
-        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
-      } else if (tipoCadastro === "bling") {
-        console.log(dadosBling);
-        saveProdutos(dadosBling);
-      }
-      setCarregando(false);
-    } catch (error) {
-      alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
-      setCarregando(false);
-    }
+    geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+    // try {
+    //   if (tipoCadastro === "planilha") {
+    //     geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+    //   } else if (tipoCadastro === "bling") {
+    //     console.log(dadosBling);
+    //     saveProdutos(dadosBling);
+    //   }
+    //   setCarregando(false);
+    // } catch (error) {
+    //   alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
+    //   setCarregando(false);
+    // }
   };
 
   // Planinha
