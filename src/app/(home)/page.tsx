@@ -263,9 +263,8 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (codigoBling === null) iniciarOAuth();
-
-    if (codigoBling !== "" && tokenBling === "") getToken();
+    // if (codigoBling === null) iniciarOAuth();
+    // if (codigoBling !== "" && tokenBling === "") getToken();
   });
 
   //Ações no Bling
