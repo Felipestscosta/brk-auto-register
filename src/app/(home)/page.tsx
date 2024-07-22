@@ -393,7 +393,7 @@ export default function Home() {
           //Variacoes para Planilha
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
+            descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
             estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
             preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
             produto_variacao: "Variação",
@@ -417,7 +417,7 @@ export default function Home() {
               },
             },
             variacao: {
-              nome: `Gênero: Masculino;Tamanho: ${item.nome}`,
+              nome: `Gênero:Masculino;Tamanho:${item.nome}`,
               ordem: 1,
               produtoPai: {
                 cloneInfo: true,
@@ -432,7 +432,7 @@ export default function Home() {
           //Variacoes para Planilha
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero: Feminino;Tamanho: ${item.nome}`,
+            descricao: `Gênero:Feminino;Tamanho:${item.nome}`,
             estoque: estoque,
             preco: preco,
             produto_variacao: "Variação",
@@ -456,7 +456,7 @@ export default function Home() {
               },
             },
             variacao: {
-              nome: `Gênero: Feminino;Tamanho: ${item.nome}`,
+              nome: `Gênero:Feminino;Tamanho:${item.nome}`,
               ordem: 1,
               produtoPai: {
                 cloneInfo: true,
@@ -470,7 +470,7 @@ export default function Home() {
         relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero: Infantil;Tamanho: ${item.nome}`,
+            descricao: `Gênero:Infantil;Tamanho:${item.nome}`,
             estoque: estoque,
             preco: preco,
             produto_variacao: "Variação",
@@ -494,7 +494,7 @@ export default function Home() {
               },
             },
             variacao: {
-              nome: `Gênero: Infantil;Tamanho: ${item.nome}`,
+              nome: `Gênero:Infantil;Tamanho:${item.nome}`,
               ordem: 1,
               produtoPai: {
                 cloneInfo: true,
@@ -513,7 +513,7 @@ export default function Home() {
           relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Gênero: Masculino;Tamanho: ${item.nome}`,
+              descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
               estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
               preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
               produto_variacao: "Variação",
@@ -537,7 +537,7 @@ export default function Home() {
                 },
               },
               variacao: {
-                nome: `Gênero: Masculino;Tamanho: ${item.nome}`,
+                nome: `Gênero:Masculino;Tamanho:${item.nome}`,
                 ordem: 1,
                 produtoPai: {
                   cloneInfo: true,
@@ -551,7 +551,7 @@ export default function Home() {
           relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Gênero: Feminino;Tamanho: ${item.nome}`,
+              descricao: `Gênero:Feminino;Tamanho:${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
@@ -575,7 +575,7 @@ export default function Home() {
                 },
               },
               variacao: {
-                nome: `Gênero: Feminino;Tamanho: ${item.nome}`,
+                nome: `Gênero:Feminino;Tamanho:${item.nome}`,
                 ordem: 1,
                 produtoPai: {
                   cloneInfo: true,
@@ -589,7 +589,7 @@ export default function Home() {
           relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Gênero: Infantil;Tamanho: ${item.nome}`,
+              descricao: `Gênero:Infantil;Tamanho:${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
@@ -613,7 +613,7 @@ export default function Home() {
                 },
               },
               variacao: {
-                nome: `Gênero: Infantil;Tamanho: ${item.nome}`,
+                nome: `Gênero:Infantil;Tamanho:${item.nome}`,
                 ordem: 1,
                 produtoPai: {
                   cloneInfo: true,
@@ -630,7 +630,7 @@ export default function Home() {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
                 codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
-                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
                 produto_variacao: "Variação",
@@ -653,7 +653,7 @@ export default function Home() {
                   },
                 },
                 variacao: {
-                  nome: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                  nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                   ordem: 1,
                   produtoPai: {
                     cloneInfo: true,
@@ -669,7 +669,7 @@ export default function Home() {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
                 codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
-                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
                 produto_variacao: "Variação",
@@ -693,7 +693,7 @@ export default function Home() {
                 },
               },
               variacao: {
-                nome: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 ordem: 1,
                 produtoPai: {
                   cloneInfo: true,
@@ -708,7 +708,7 @@ export default function Home() {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
                 codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
-                descricao: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
                 produto_variacao: "Variação",
@@ -732,7 +732,7 @@ export default function Home() {
                   },
                 },
                 variacao: {
-                  nome: `Cor: ${item.cor_nome};Tamanho: ${item.tamanho}`,
+                  nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                   ordem: 1,
                   produtoPai: {
                     cloneInfo: true,
