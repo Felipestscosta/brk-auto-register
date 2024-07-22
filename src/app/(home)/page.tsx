@@ -1,12 +1,11 @@
 "use client";
-import { writeFileXLSX, utils } from "xlsx";
+import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, TShirt } from "@phosphor-icons/react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { useSearchParams } from "next/navigation";
+import { writeFileXLSX, utils } from "xlsx";
 import { useEffect, useState } from "react";
 import axios from "axios";
-
 import Image from "next/image";
-import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, TShirt } from "@phosphor-icons/react";
-import { useSearchParams } from "next/navigation";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -235,52 +234,52 @@ export default function Home() {
 
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
+  const [tipoCadastro, setTipoCadastro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [tokenBling, setTokenBling] = useState("");
   const [loja, setLoja] = useState("");
-  const [tipoCadastro, setTipoCadastro] = useState("");
 
   // Autenticação do Bling
-  // const iniciarOAuth = async () => {
+  // const iniciarOAuth = () => {
   //   const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
-  //   //const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=8facc0025636ad583e3c4cadd70c63a5`;
   //   const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
-
   //   window.location.href = authUrl;
   // };
 
-  // async function getToken() {
-  //   const resGeraToken: any = await axios.get(`/api/get-bling-token?code=${codigoBling}`).then((res: any) => {
-  //     console.log(res);
-  //     console.log(res.data.access_token);
-  //     console.log("Console se tiver erro:", res.error);
+  // function getToken() {
+  //   axios.get(`/api/bling-token?code=${codigoBling}`).then((res: any) => {
   //     if (res.error === undefined) {
-  //       setTokenBling(res.data.access_token);
+  //       const token = res.data.access_token;
+  //       setTokenBling(token);
+  //       localStorage.setItem("tokenBling", token);
   //     } else {
   //       alert("Ops! Houve um problema na geração do Token ⛔");
   //     }
   //   });
   // }
 
-  useEffect(() => {
-    // if (codigoBling === null) iniciarOAuth();
-    // if (codigoBling !== "" && tokenBling === "") getToken();
-  });
+  // useEffect(() => {
+  //   const tokenBlingLocalStorage = localStorage.getItem("tokenBling");
 
-  //Ações no Bling
-  const getProdutos = async () => {
-    setCarregando(false);
-    console.log("Token do Bling: ", tokenBling);
-    // if (tokenBling)
-    //   const response = await axios.get(
-    //     `/api/get-bling-produtos?token=${tokenBling}`
-    //   );
-  };
+  //   if (codigoBling === null) iniciarOAuth();
+  //   if (codigoBling !== "") {
+  //     if (tokenBlingLocalStorage === "") getToken();
+  //   }
+  // });
+
+  //Busca Produtos Cadastrados no Bling
+  // const getProdutos = async () => {
+  //   setCarregando(false);
+  //   if (tokenBling)
+  //     const response = await axios.get(
+  //       `/api/bling-produtos?token=${tokenBling}`
+  //     );
+  // };
 
   async function saveProdutos(data: any) {
     setCarregando(false);
 
-    const response = await axios.post(`/api/get-bling-produtos?token=${tokenBling}`, data);
+    const response = await axios.post(`/api/bling-produtos?token=${tokenBling}`, data);
     if (response.status === 201) alert("Produto Cadastrado com sucesso 🚀");
   }
 
@@ -379,8 +378,9 @@ export default function Home() {
         tipo_producao: "Terceiros", // backlog Bling 1
         tipo_do_item: "Mercadoria para Revenda",
         codigo_pai: "",
-        marca: "Brk Agro", // backlog Loja
+        marca: loja, // backlog Loja
         url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
+        grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || (tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
       },
     ];
 
@@ -791,19 +791,18 @@ export default function Home() {
       variacoes: dadosVariacoesBling,
     };
 
-    geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
-    // try {
-    //   if (tipoCadastro === "planilha") {
-    //     geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
-    //   } else if (tipoCadastro === "bling") {
-    //     console.log(dadosBling);
-    //     saveProdutos(dadosBling);
-    //   }
-    //   setCarregando(false);
-    // } catch (error) {
-    //   alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
-    //   setCarregando(false);
-    // }
+    try {
+      if (tipoCadastro === "planilha") {
+        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+      } else if (tipoCadastro === "bling") {
+        // console.log(dadosBling);
+        // saveProdutos(dadosBling);
+      }
+      setCarregando(false);
+    } catch (error) {
+      alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
+      setCarregando(false);
+    }
   };
 
   // Planinha
@@ -831,7 +830,7 @@ export default function Home() {
       "Peso bruto (Kg)": "0,250",
       "GTIN/EAN": "", // Dinâmico
       "GTIN/EAN da Embalagem": "", // Dinâmico
-      "Largura do produto": parseFloat("1"),
+      "Largura do produto": parseFloat("10"),
       "Altura do Produto": parseFloat("11"),
       "Profundidade do produto": parseFloat("16"),
       "Data Validade": "",
@@ -848,7 +847,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      Marca: loja === "" ? "" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -903,7 +902,7 @@ export default function Home() {
       "Peso bruto (Kg)": "0,250",
       "GTIN/EAN": "", // Dinâmico
       "GTIN/EAN da Embalagem": "", // Dinâmico
-      "Largura do produto": parseFloat("1"),
+      "Largura do produto": parseFloat("10"),
       "Altura do Produto": parseFloat("11"),
       "Profundidade do produto": parseFloat("16"),
       "Data Validade": "",
@@ -920,7 +919,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      Marca: (loja === "" && "") || (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -962,6 +961,7 @@ export default function Home() {
           width={900}
           height={900}
           alt=""
+          priority
         />
         <Image
           src={`/camiseta.png`}
@@ -1373,7 +1373,7 @@ export default function Home() {
                     setTipoCadastro("bling");
                   }}
                   type="submit"
-                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                  className={`py-2 px-10 hidden border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
                   {carregando ? (
                     <span className="flex justify-center items-center">
