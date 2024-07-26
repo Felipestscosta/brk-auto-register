@@ -240,32 +240,31 @@ export default function Home() {
   const [loja, setLoja] = useState("");
 
   // Autenticação do Bling
-  // const iniciarOAuth = () => {
-  //   const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
-  //   const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
-  //   window.location.href = authUrl;
-  // };
+  const iniciarOAuth = () => {
+    const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
+    const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
+    window.location.href = authUrl;
+  };
 
-  // function getToken() {
-  //   axios.get(`/api/bling-token?code=${codigoBling}`).then((res: any) => {
-  //     if (res.error === undefined) {
-  //       const token = res.data.access_token;
-  //       setTokenBling(token);
-  //       localStorage.setItem("tokenBling", token);
-  //     } else {
-  //       alert("Ops! Houve um problema na geração do Token ⛔");
-  //     }
-  //   });
-  // }
+  function getToken() {
+    axios.get(`/api/bling-token?code=${codigoBling}`).then((res: any) => {
+      if (res.error === undefined) {
+        const token = res.data.access_token;
+        setTokenBling(token);
+        localStorage.setItem("tokenBling", token);
+      } else {
+        alert("Ops! Houve um problema na geração do Token ⛔");
+      }
+    });
+  }
 
-  // useEffect(() => {
-  //   const tokenBlingLocalStorage = localStorage.getItem("tokenBling");
-
-  //   if (codigoBling === null) iniciarOAuth();
-  //   if (codigoBling !== "") {
-  //     if (tokenBlingLocalStorage === "") getToken();
-  //   }
-  // });
+  useEffect(() => {
+    console.log(localStorage.getItem("tokenBling"));
+    if (codigoBling === null) iniciarOAuth();
+    if (codigoBling !== "") {
+      if (localStorage.getItem("tokenBling") === "" || localStorage.getItem("tokenBling") === null) getToken();
+    }
+  });
 
   //Busca Produtos Cadastrados no Bling
   // const getProdutos = async () => {
@@ -277,10 +276,28 @@ export default function Home() {
   // };
 
   async function saveProdutos(data: any) {
-    setCarregando(false);
+    const retornoCadastroProduto: any = await axios.post(`/api/bling-produtos?token=${localStorage.getItem("tokenBling")}`, data);
+    const variacoes = retornoCadastroProduto.data.variacoes;
+    const quantidadeVariacoes = Object.keys(variacoes).length;
 
-    const response = await axios.post(`/api/bling-produtos?token=${tokenBling}`, data);
-    if (response.status === 201) alert("Produto Cadastrado com sucesso 🚀");
+    if (quantidadeVariacoes !== 0) {
+      for (let i = 0; i < quantidadeVariacoes; i++) {
+        const variacao = variacoes[i];
+        try {
+          await axios.post(`/api/bling-estoques?token=${localStorage.getItem("tokenBling")}`, { id: variacao.id });
+        } catch (error) {
+          console.error(`Erro na requisição para variação ${variacao.id}:`, error);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    } else {
+      axios.post(`/api/bling-estoques?token=${localStorage.getItem("tokenBling")}`, { id: retornoCadastroProduto.idProduto });
+    }
+
+    if (retornoCadastroProduto.status === 201) {
+      alert("Produto Cadastrado com sucesso 🚀");
+      setCarregando(false);
+    }
   }
 
   //Caputura do Formulário
@@ -795,10 +812,8 @@ export default function Home() {
       if (tipoCadastro === "planilha") {
         geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
-        // console.log(dadosBling);
-        // saveProdutos(dadosBling);
+        saveProdutos(dadosBling);
       }
-      setCarregando(false);
     } catch (error) {
       alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
       setCarregando(false);
@@ -1373,7 +1388,7 @@ export default function Home() {
                     setTipoCadastro("bling");
                   }}
                   type="submit"
-                  className={`py-2 px-10 hidden border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
                   {carregando ? (
                     <span className="flex justify-center items-center">

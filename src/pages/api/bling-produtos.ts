@@ -29,56 +29,11 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const dataNovoProduto = req.body;
 
     try {
-      const resProduto = await axios.post("https://www.bling.com.br/Api/v3/produtos", dataNovoProduto,{ headers: {Authorization: `Bearer ${token}`} });
+      // CRIA PRODUTO
+      const resCadastroProduto = await axios.post("https://www.bling.com.br/Api/v3/produtos", dataNovoProduto,{ headers: {Authorization: `Bearer ${token}`} });
 
-
-      // Adiciona estoque
-      const estoque = dataNovoProduto.estoque.maximo;
-      const idProduto = resProduto.data.data.id;
-
-      // const options = {
-      //   method: 'POST',
-      //   url: 'https://bling.com.br/Api/v3/estoques',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     Authorization: `Bearer ${token}`
-      //   },
-      //   data: {
-      //     produto: {id: idProduto},
-      //     deposito: {id: 14887659608},
-      //     operacao: 'B',
-      //     preco: 0,
-      //     custo: 0,
-      //     quantidade: parseFloat(estoque),
-      //     observacoes: 'Estoque adicionado automaticamente pelo Auto Register'
-      //   }
-      // };
-
-      const options = {
-        method: 'POST',
-        url: '/Api/estoques',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        data: {
-          produto: {id: idProduto},
-          quantidade: parseFloat(estoque),
-          observacoes: 'Estoque adicionado automaticamente pelo Auto Register'
-        }
-      };
-
-      try {
-        await axios.request(options).then(function(res) {
-          console.log(res)
-        });        
-      } catch (error) {
-        console.log("ERROOOOOO ===============> ", error)
-      }
-
-      res.status(201).json({ produto_cadastrado: idProduto });
+      res.status(201).json({ idProduto: resCadastroProduto.data.data.id, variacoes: resCadastroProduto.data.data.variations.saved });
     } catch (error: any) {
-      console.log(error.response)
       res.status(500).json({ erro: error });
     }
   }
