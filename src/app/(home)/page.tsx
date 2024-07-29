@@ -1,11 +1,14 @@
 "use client";
-import { Barn, BaseballCap, CircleNotch, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, TShirt } from "@phosphor-icons/react";
+import { Barn, BaseballCap, CircleNotch, Empty, FileArrowDown, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, TShirt } from "@phosphor-icons/react";
 import { SubmitHandler, useForm } from "react-hook-form";
+import CurrencyInput from "react-currency-input-field";
 import { useSearchParams } from "next/navigation";
+
 import { writeFileXLSX, utils } from "xlsx";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Image from "next/image";
+import { useDropzone } from "react-dropzone";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -232,12 +235,28 @@ export default function Home() {
   const searchParams = useSearchParams();
   const codigoBling = searchParams?.get("code");
 
+  const [files, setFiles] = useState<any[]>([]);
+  const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
+    accept: {
+      "image/*": [],
+    },
+    onDrop: (acceptedFiles) => {
+      setFiles(
+        acceptedFiles.map((file) =>
+          Object.assign(file, {
+            preview: URL.createObjectURL(file),
+          })
+        )
+      );
+    },
+  });
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [tipoCadastro, setTipoCadastro] = useState("");
   const [carregando, setCarregando] = useState(false);
-  const [tokenBling, setTokenBling] = useState("");
   const [loja, setLoja] = useState("");
+
+  //Integração GPT
 
   // Autenticação do Bling
   const iniciarOAuth = () => {
@@ -264,16 +283,9 @@ export default function Home() {
     if (codigoBling !== "") {
       if (localStorage.getItem("tokenBling") === "" || localStorage.getItem("tokenBling") === null) getToken();
     }
-  });
 
-  //Busca Produtos Cadastrados no Bling
-  // const getProdutos = async () => {
-  //   setCarregando(false);
-  //   if (tokenBling)
-  //     const response = await axios.get(
-  //       `/api/bling-produtos?token=${tokenBling}`
-  //     );
-  // };
+    () => files.forEach((file) => URL.revokeObjectURL(file.preview));
+  });
 
   async function saveProdutos(data: any) {
     const retornoCadastroProduto: any = await axios.post(`/api/bling-produtos?token=${localStorage.getItem("tokenBling")}`, data);
@@ -284,7 +296,9 @@ export default function Home() {
       for (let i = 0; i < quantidadeVariacoes; i++) {
         const variacao = variacoes[i];
         try {
-          await axios.post(`/api/bling-estoques?token=${localStorage.getItem("tokenBling")}`, { id: variacao.id });
+          if (!variacao.nomeVariacao.includes("G3") && !variacao.nomeVariacao.includes("G4")) {
+            await axios.post(`/api/bling-estoques?token=${localStorage.getItem("tokenBling")}`, { id: variacao.id });
+          }
         } catch (error) {
           console.error(`Erro na requisição para variação ${variacao.id}:`, error);
         }
@@ -333,8 +347,16 @@ export default function Home() {
     var imagensCorPreto: any = [];
     var imagensCorAzul: any = [];
 
-    for (let i = 0; i < data.imagens.length; i++) {
-      const file = data.imagens[i];
+    const qtdFiles = Object.keys(files).length;
+
+    const filesOrdenados = files.toSorted((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
+
+    for (let i = 0; i < qtdFiles; i++) {
+      const file = filesOrdenados[i];
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", "ml_default");
@@ -383,7 +405,7 @@ export default function Home() {
     }
 
     // Dados da Planilha
-    var preco = parseFloat(data.preco);
+    var preco = parseFloat(data.preco.replace("R$", "").replace(".", "").replace(",", "."));
     var estoque = parseInt(data.estoque);
     const primeiraLinhaDaPlanilha = [
       {
@@ -771,8 +793,8 @@ export default function Home() {
       formato: "V",
       descricaoCurta: "Descrição curta",
       unidade: "UN",
-      pesoLiquido: 1,
-      pesoBruto: 1,
+      pesoLiquido: 0.25,
+      pesoBruto: 0.25,
       volumes: 1,
       itensPorCaixa: 1,
       gtin: "7794051852802",
@@ -780,11 +802,11 @@ export default function Home() {
       tipoProducao: "P",
       condicao: 0,
       freteGratis: false,
-      marca: "Marca",
+      marca: loja === "" ? "" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"),
       descricaoComplementar: "Descrição complementar",
       dimensoes: {
-        largura: 1,
-        altura: 10,
+        largura: 10,
+        altura: 11,
         profundidade: 16,
         unidadeMedida: 1,
       },
@@ -816,6 +838,8 @@ export default function Home() {
       }
     } catch (error) {
       alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
+      setCarregando(false);
+    } finally {
       setCarregando(false);
     }
   };
@@ -967,9 +991,24 @@ export default function Home() {
     setCarregando(false);
   }
 
+  const thumbs = files.map((file) => (
+    <div key={file.name}>
+      <Image
+        className="rounded-lg"
+        width={90}
+        height={90}
+        src={file.preview}
+        onLoad={() => {
+          URL.revokeObjectURL(file.preview);
+        }}
+        alt=""
+      />
+    </div>
+  ));
+
   return (
     <>
-      <div className="relative flex flex-col h-full w-full items-center justify-center gap-4 bg-gradient-to-r from-zinc-800 to-zinc-950 overflow-hidden">
+      <div className="relative flex flex-col h-full w-full items-center justify-center gap-4 py-10 overflow-hidden">
         <Image
           src={`/camisa.png`}
           className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${tipoDeProduto === "camisa" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
@@ -1008,6 +1047,16 @@ export default function Home() {
             <span className={`flex flex-col items-center justify-center ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"} `}>
               <Motorcycle size={32} />
               BRK Motors
+            </span>
+          </button>
+          <button
+            onClick={() => setLoja("")}
+            type="button"
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 rounded-r-lg ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"}`}
+          >
+            <span className={`flex flex-col items-center justify-center ${loja === "" ? "text-zinc-200" : "text-zinc-200/30"} `}>
+              <Empty size={32} />
+              Nenhum
             </span>
           </button>
         </div>
@@ -1059,19 +1108,38 @@ export default function Home() {
           <form className="flex flex-col justify-center items-center gap-10" onSubmit={handleSubmit(onSubmit)}>
             {tipoDeProduto === "camisa" && (
               <>
-                <label
-                  className="flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg"
-                  htmlFor="imagens"
-                >
-                  <input
-                    className="cursor-pointer text-zinc-200"
-                    type="file"
-                    id="imagens"
-                    multiple
-                    // required
-                    {...register("imagens")}
-                  />
-                </label>
+                <section className="container">
+                  <label
+                    htmlFor="imagens"
+                    {...getRootProps({
+                      className: "dropzone flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg",
+                    })}
+                  >
+                    <input
+                      className="cursor-pointer text-zinc-200"
+                      type="file"
+                      id="imagens"
+                      multiple
+                      // required
+                      {...register("imagens")}
+                      {...getInputProps()}
+                    />
+
+                    <div className="flex flex-col gap-1 text-slate-100">
+                      <h4>
+                        {files.length === 0 ? (
+                          <div className="flex flex-col gap-4 justify-center items-center text-slate-100/45">
+                            <FileArrowDown size={32} />
+                            <p>Selecione as Imagens ou Solte Aqui</p>
+                          </div>
+                        ) : (
+                          "Imagens"
+                        )}
+                      </h4>
+                      <ul className="flex text-slate-100/45 gap-4">{thumbs}</ul>
+                    </div>
+                  </label>
+                </section>
 
                 <div className="flex gap-10 mb-16">
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
@@ -1109,13 +1177,21 @@ export default function Home() {
                     />
                   </label>
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
-                    Preço ( R$ )
-                    <input
+                    Preço
+                    {/* <input
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                       id="preco"
                       type="text"
                       placeholder={`${precos.camisa}`}
                       required
+                      {...register("preco")}
+                    /> */}
+                    <CurrencyInput
+                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                      id="preco"
+                      placeholder={`${precos.camisa}`}
+                      defaultValue={`${precos.camisa}`}
+                      intlConfig={{ locale: "pt-BR", currency: "BRL" }}
                       {...register("preco")}
                     />
                   </label>
@@ -1136,6 +1212,44 @@ export default function Home() {
                     <span className="text-zinc-200">Infantil</span>
                   </label>
                 </div>
+
+                {/* SEO */}
+                {/* <div className="flex flex-col w-full">
+                  <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
+                    Meta Title
+                    <input
+                      className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                      id="titulo"
+                      type="text"
+                      placeholder=""
+                      required
+                      {...register("metatitle")}
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
+                    Meta Description
+                    <textarea
+                      className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                      id="titulo"
+                      placeholder=""
+                      required
+                      {...register("metadescription")}
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
+                    Meta Keywords
+                    <input
+                      className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                      id="titulo"
+                      type="text"
+                      placeholder=""
+                      required
+                      {...register("metakeywords")}
+                    />
+                  </label>
+                </div> */}
               </>
             )}
 
@@ -1364,7 +1478,6 @@ export default function Home() {
               <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800 gap-8">
                 <button
                   onClick={() => {
-                    setCarregando(true);
                     setTipoCadastro("planilha");
                   }}
                   type="submit"
@@ -1384,7 +1497,6 @@ export default function Home() {
 
                 <button
                   onClick={() => {
-                    setCarregando(true);
                     setTipoCadastro("bling");
                   }}
                   type="submit"

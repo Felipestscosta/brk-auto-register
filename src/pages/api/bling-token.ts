@@ -20,12 +20,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
       }
     })
 
-    //console.log('Retorno da Requisiçãoo::::::::::::::::', response)
-
     res.status(200).json(response.data);
-  } catch (err: any) {
-    const erroResposta = err.response.data.error.type;
-
-    res.status(500).json({ error: erroResposta });
+  } catch (erro: any) {
+    res.status(500).json({ error: erro.response.data });
   }
 }

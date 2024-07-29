@@ -34,6 +34,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
       res.status(201).json({ idProduto: resCadastroProduto.data.data.id, variacoes: resCadastroProduto.data.data.variations.saved });
     } catch (error: any) {
+      console.log(error.response)
       res.status(500).json({ erro: error });
     }
   }
