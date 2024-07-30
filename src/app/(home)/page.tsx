@@ -253,6 +253,7 @@ export default function Home() {
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [tipoCadastro, setTipoCadastro] = useState("");
+  const [tokenBling, setTokenBling] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [loja, setLoja] = useState("");
 
