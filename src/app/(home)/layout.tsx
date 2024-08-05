@@ -6,7 +6,7 @@ import { Suspense } from "react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BRK | Auto Cadastro ",
+  title: "BRK | Auto Cadastro - Expedição ",
   description: "Aplicação desenvolvida com o objetivo facilitar nos cadastros de produtos variados.",
 };
 
