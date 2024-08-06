@@ -6,8 +6,8 @@ import { Suspense } from "react";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BRK | Auto Cadastro - Expedição ",
-  description: "Aplicação desenvolvida com o objetivo facilitar nos cadastros de produtos variados.",
+  title: "BRK | Auto Cadastro - Página de Produtos Bling ",
+  description: "Listagem, análise e gerenciamento de produtos no CRM Bling.",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt">
-      <body className={`flex min-h-screen min-w-screen justify-center items-center ${inter.className} bg-gradient-to-r from-zinc-800 to-zinc-950`}>
+      <body className={`flex h-screen w-screen justify-center items-center ${inter.className}`}>
         <Suspense>{children}</Suspense>
       </body>
     </html>
