@@ -872,7 +872,7 @@ export default function Home() {
     try {
       if (tipoCadastro === "planilha") {
         console.log("Dados da Planilha:", variacaoDeProduto);
-        //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
         saveProdutos(dadosBling);
       }
