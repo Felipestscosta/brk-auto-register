@@ -460,9 +460,9 @@ export default function Home() {
     if (tipoDeProduto === "camisa") {
       if (data.tamanho_masculino) {
         relacaoDeTamanhos[0].masculino.tamanhos.map(async (item) => {
-          let retornoCapturaEan = await capturaEan();
+          // let retornoCapturaEan = await capturaEan();
 
-          console.log("Retorno da Função de Captura EAN:", retornoCapturaEan);
+          // console.log("Retorno da Função de Captura EAN:", retornoCapturaEan);
           // let numeroEanCapturado = retornoCapturaEan.numero;
           // let idEanCapturado = retornoCapturaEan.id;
 
@@ -979,8 +979,8 @@ export default function Home() {
       "Estoque mínimo": parseFloat("0"),
       "Peso líquido (Kg)": "0,250",
       "Peso bruto (Kg)": "0,250",
-      "GTIN/EAN": row.ean, // Dinâmico
-      "GTIN/EAN da Embalagem": row.ean, // Dinâmico
+      "GTIN/EAN": "", // Dinâmico
+      "GTIN/EAN da Embalagem": "", // Dinâmico
       "Largura do produto": parseFloat("10"),
       "Altura do Produto": parseFloat("11"),
       "Profundidade do produto": parseFloat("16"),
@@ -1634,7 +1634,7 @@ export default function Home() {
                     setTipoCadastro("bling");
                   }}
                   type="submit"
-                  className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                  className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
                   {carregando ? (
                     <span className="flex justify-center items-center">
