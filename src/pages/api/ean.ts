@@ -9,7 +9,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     try {
         const retornoEan = await prisma.ean.findFirst({
             where: {
-                dataUtilizacao: null
+                data_utilizacao: null
             }
         })
 
@@ -41,17 +41,19 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   
   // Marca EAN / GTIN Como Já utilizado
   if (tipoMetodo === "PUT") {
-    const dataEan = req.body;
+    const { dataEan } = req.body;
+
+    console.log('NÚMERO DO EAN: ', dataEan)
 
     try {
       await prisma.ean.update({
         where: {
-            id: dataEan.toString(),
+          id: `${dataEan}`,
         },
         data: {
-            dataUtilizacao: new Date(),
-        }
-      });
+          data_utilizacao: new Date(),
+        },
+      })
 
       res.status(201).json({
         message: 'EAN foi marcado com utilizado com sucesso 🚀.'

@@ -7,9 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Ean{
-  id String @id @default(uuid())
-  numero String
-  dataUtilizacao DateTime? @map("data_utilizacao")
+model Ean {
+  id             String    @id @default(uuid())
+  numero         String
+  data_utilizacao DateTime? @map("data_utilizacao")
 }
-
