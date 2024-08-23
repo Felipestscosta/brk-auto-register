@@ -5,10 +5,11 @@ import CurrencyInput from "react-currency-input-field";
 import { useSearchParams } from "next/navigation";
 
 import { writeFileXLSX, utils, readFile } from "xlsx";
-import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
+// import ean from "@/pages/api/ean";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -293,13 +294,14 @@ export default function Home() {
     }
   }
 
-  // Autenticação do Bling
+  //Autenticação do Bling
   const iniciarOAuth = () => {
-    const clientId = "c31b56f93fafffa81d982a9e409980829942169c";
+    const clientId = `${process.env.NEXT_PUBLIC_BLING_API_CLIENT_ID}`;
     const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
     window.location.href = authUrl;
   };
 
+  //Salva o Token do Bling
   function getToken() {
     axios.get(`/api/bling-token?code=${codigoBling}`).then((res: any) => {
       if (res.error === undefined) {
@@ -320,6 +322,7 @@ export default function Home() {
     () => files.forEach((file) => URL.revokeObjectURL(file.preview));
   });
 
+  //Salva Produto no Bling
   async function saveProdutos(data: any) {
     const retornoCadastroProduto: any = await axios.post(`/api/bling-produtos?token=${localStorage.getItem("tokenBling")}`, data);
     const variacoes = retornoCadastroProduto.data.variacoes;
@@ -357,7 +360,6 @@ export default function Home() {
   const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (data) => {
     setCarregando(true);
 
-    //Tratamento das Imagens
     //Imagens Bling
     let todasAsImagensBling = [];
     var imagensMasculinasBling: any = [];
@@ -380,10 +382,12 @@ export default function Home() {
 
     const qtdFiles = Object.keys(files).length;
 
+    //Ordena as Imagens em Ordem Ascendente
     const filesOrdenados = files.toSorted((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
+      const numA = parseInt(a.name.split("_")[0], 10);
+      const numB = parseInt(b.name.split("_")[0], 10);
+
+      return numA - numB;
     });
 
     for (let i = 0; i < qtdFiles; i++) {
@@ -395,7 +399,7 @@ export default function Home() {
       try {
         const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
 
-        // Imagens por Gênero...
+        // Imagens por Gênero
         if (file.name.toLowerCase().includes("masc")) {
           imagensMasculinas.push(response.data.secure_url);
           imagensMasculinasBling.push({ link: response.data.secure_url });
@@ -460,13 +464,14 @@ export default function Home() {
     if (tipoDeProduto === "camisa") {
       if (data.tamanho_masculino) {
         relacaoDeTamanhos[0].masculino.tamanhos.map(async (item) => {
-          // let retornoCapturaEan = await capturaEan();
+          // var retornoCapturaEan = await axios.get("/api/ean");
+          // var idEAN = retornoCapturaEan.data.data.id;
+          // var numeroEAN = retornoCapturaEan.data.data.numero;
 
-          // console.log("Retorno da Função de Captura EAN:", retornoCapturaEan);
-          // let numeroEanCapturado = retornoCapturaEan.numero;
-          // let idEanCapturado = retornoCapturaEan.id;
-
-          // if (numeroEanCapturado) marcaEanUtilizado(idEanCapturado);
+          // //Sinaliza EAN Como Utilizado
+          // if (idEAN) {
+          //   await axios.put("/api/ean", { dataEan: idEAN });
+          // }
 
           //Variacoes para Planilha
           variacaoDeProduto.push({
@@ -478,8 +483,7 @@ export default function Home() {
             tipo_producao: "Terceiros", // backlog Bling 1
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
-            marca: "Brk Agro", // backlog Loja
-            url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+            url_imagens_externas: imagensMasculinas.join("|"),
             grupo_de_produtos: "Camisa Master",
           });
 
@@ -872,7 +876,7 @@ export default function Home() {
     try {
       if (tipoCadastro === "planilha") {
         console.log("Dados da Planilha:", variacaoDeProduto);
-        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+        //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
         saveProdutos(dadosBling);
       }
@@ -1110,12 +1114,15 @@ export default function Home() {
       <div className="relative flex flex-col min-h-screen h-full w-full items-center justify-center gap-4 py-10 overflow-y-clip">
         {/* HUD do EAN/GTIN */}
         <div className="fixed flex flex-col top-0 right-0 p-5">
-          <span className="flex justify-center items-center text-sm text-green-400/45">
-            EAN/GTIN Restantes: 45 <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-            {/* <button className="ml-3 text-slate-200/45 border border-slate-200/10 hover:bg-slate-200 hover:text-slate-900 p-2 rounded-full">
-              <UploadSimple className="font-bold" size={18} />
-            </button> */}
-          </span>
+          <label
+            className="relative flex flex-col justify-center items-center text-center rounded-full text-green-400/45 border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]"
+            htmlFor="upean"
+          >
+            {/* <UploadSimple className="font-bold" size={36} /> */}
+            <span className="absolute right-0 top-0 p-6">45</span>
+            <p>EAN</p>
+            <input className="hidden" id="upean" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+          </label>
         </div>
 
         {/* Imagens Dinâmicas por Produtos */}
@@ -1341,7 +1348,6 @@ export default function Home() {
                         id="titulo"
                         type="text"
                         placeholder=""
-                        required
                         {...register("metatitle")}
                         value={`${informacoesSeo[0]}`}
                       />
@@ -1353,7 +1359,6 @@ export default function Home() {
                         className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                         id="titulo"
                         placeholder=""
-                        required
                         {...register("metadescription")}
                         value={`${informacoesSeo[1]}`}
                       />
@@ -1366,7 +1371,6 @@ export default function Home() {
                         id="titulo"
                         type="text"
                         placeholder=""
-                        required
                         {...register("metakeywords")}
                         value={`${informacoesSeo[2]}`}
                       />
@@ -1378,12 +1382,38 @@ export default function Home() {
 
             {tipoDeProduto === "camiseta" && (
               <>
-                <label
-                  className="flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg"
-                  htmlFor="imagens"
-                >
-                  <input className="cursor-pointer text-zinc-200" type="file" id="imagens" multiple required {...register("imagens")} />
-                </label>
+                <section className="container">
+                  <label
+                    htmlFor="imagens"
+                    {...getRootProps({
+                      className: "dropzone flex bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 border-dashed w-full justify-center items-center cursor-pointer mb-10 mt-4 p-8 rounded-lg",
+                    })}
+                  >
+                    <input
+                      className="cursor-pointer text-zinc-200"
+                      type="file"
+                      id="imagens"
+                      multiple
+                      // required
+                      {...register("imagens")}
+                      {...getInputProps()}
+                    />
+
+                    <div className="flex flex-col gap-1 text-slate-100">
+                      <h4>
+                        {files.length === 0 ? (
+                          <div className="flex flex-col gap-4 justify-center items-center text-slate-100/45">
+                            <FileArrowDown size={32} />
+                            <p>Selecione as Imagens ou Solte Aqui</p>
+                          </div>
+                        ) : (
+                          "Imagens"
+                        )}
+                      </h4>
+                      <ul className="flex text-slate-100/45 gap-4">{thumbs}</ul>
+                    </div>
+                  </label>
+                </section>
 
                 <div className="flex gap-10 mb-16">
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="codigo">
@@ -1407,6 +1437,7 @@ export default function Home() {
                       placeholder="Ex: Camiseta Agro Brk..."
                       required
                       {...register("titulo")}
+                      onBlur={(e) => geraSEO(e.target.value)}
                     />
                   </label>
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
@@ -1486,6 +1517,48 @@ export default function Home() {
                     </label>
                   </div>
                 )}
+
+                {/* SEO */}
+                <div className="flex flex-col w-full">
+                  <fieldset className="border border-slate-200/10 p-10">
+                    <legend className="text-slate-200 font-bold text-lg px-4">SEO</legend>
+
+                    <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
+                      Meta Title
+                      <input
+                        className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                        id="titulo"
+                        type="text"
+                        placeholder=""
+                        {...register("metatitle")}
+                        value={`${informacoesSeo[0]}`}
+                      />
+                    </label>
+
+                    <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
+                      Meta Description
+                      <textarea
+                        className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                        id="titulo"
+                        placeholder=""
+                        {...register("metadescription")}
+                        value={`${informacoesSeo[1]}`}
+                      />
+                    </label>
+
+                    <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
+                      Meta Keywords
+                      <input
+                        className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                        id="titulo"
+                        type="text"
+                        placeholder=""
+                        {...register("metakeywords")}
+                        value={`${informacoesSeo[2]}`}
+                      />
+                    </label>
+                  </fieldset>
+                </div>
               </>
             )}
 
