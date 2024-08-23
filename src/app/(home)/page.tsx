@@ -464,14 +464,14 @@ export default function Home() {
     if (tipoDeProduto === "camisa") {
       if (data.tamanho_masculino) {
         relacaoDeTamanhos[0].masculino.tamanhos.map(async (item) => {
-          var retornoCapturaEan = await axios.get("/api/ean");
-          var idEAN = retornoCapturaEan.data.data.id;
-          var numeroEAN = retornoCapturaEan.data.data.numero;
+          // var retornoCapturaEan = await axios.get("/api/ean");
+          // var idEAN = retornoCapturaEan.data.data.id;
+          // var numeroEAN = retornoCapturaEan.data.data.numero;
 
-          //Sinaliza EAN Como Utilizado
-          if (idEAN) {
-            await axios.put("/api/ean", { dataEan: idEAN });
-          }
+          // //Sinaliza EAN Como Utilizado
+          // if (idEAN) {
+          //   await axios.put("/api/ean", { dataEan: idEAN });
+          // }
 
           //Variacoes para Planilha
           variacaoDeProduto.push({
@@ -485,7 +485,6 @@ export default function Home() {
             codigo_pai: data.codigo.toLocaleUpperCase(),
             url_imagens_externas: imagensMasculinas.join("|"),
             grupo_de_produtos: "Camisa Master",
-            ean: numeroEAN,
           });
 
           // Dados Bling
