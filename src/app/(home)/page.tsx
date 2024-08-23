@@ -9,7 +9,7 @@ import { useDropzone } from "react-dropzone";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
-import ean from "@/pages/api/ean";
+// import ean from "@/pages/api/ean";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
