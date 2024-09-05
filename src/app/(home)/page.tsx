@@ -314,10 +314,10 @@ export default function Home() {
   }
 
   useEffect(() => {
-    if (codigoBling === null) iniciarOAuth();
-    if (codigoBling !== "") {
-      if (localStorage.getItem("tokenBling") === "" || localStorage.getItem("tokenBling") === null) getToken();
-    }
+    // if (codigoBling === null) iniciarOAuth();
+    // if (codigoBling !== "") {
+    //   if (localStorage.getItem("tokenBling") === "" || localStorage.getItem("tokenBling") === null) getToken();
+    // }
 
     () => files.forEach((file) => URL.revokeObjectURL(file.preview));
   });
