@@ -401,39 +401,39 @@ export default function Home() {
 
         // Imagens por Gênero
         if (file.name.toLowerCase().includes("masc")) {
-          imagensMasculinas.push(response.data.secure_url);
-          imagensMasculinasBling.push({ link: response.data.secure_url });
+          imagensMasculinas.push(response.data.eager[0].secure_url);
+          imagensMasculinasBling.push({ link: response.data.eager[0].secure_url });
         }
 
         if (file.name.toLowerCase().includes("fem")) {
-          imagensFemininas.push(response.data.secure_url);
-          imagensFemininasBling.push({ link: response.data.secure_url });
+          imagensFemininas.push(response.data.eager[0].secure_url);
+          imagensFemininasBling.push({ link: response.data.eager[0].secure_url });
         }
 
         if (file.name.toLowerCase().includes("inf")) {
-          imagensInfantis.push(response.data.secure_url);
-          imagensInfantisBling.push({ link: response.data.secure_url });
+          imagensInfantis.push(response.data.eager[0].secure_url);
+          imagensInfantisBling.push({ link: response.data.eager[0].secure_url });
         }
 
         // Imagens por Cores
         if (file.name.toLowerCase().includes("branco")) {
-          imagensCorBranco.push(response.data.secure_url);
-          imagensCorBrancoBling.push({ link: response.data.secure_url });
+          imagensCorBranco.push(response.data.eager[0].secure_url);
+          imagensCorBrancoBling.push({ link: response.data.eager[0].secure_url });
         }
 
         if (file.name.toLowerCase().includes("preto")) {
-          imagensCorPreto.push(response.data.secure_url);
-          imagensCorPretoBling.push({ link: response.data.secure_url });
+          imagensCorPreto.push(response.data.eager[0].secure_url);
+          imagensCorPretoBling.push({ link: response.data.eager[0].secure_url });
         }
 
         if (file.name.toLowerCase().includes("azul")) {
-          imagensCorAzul.push(response.data.secure_url);
-          imagensCorAzulBling.push({ link: response.data.secure_url });
+          imagensCorAzul.push(response.data.eager[0].secure_url);
+          imagensCorAzulBling.push({ link: response.data.eager[0].secure_url });
         }
 
-        todasAsImagens.push(response.data.secure_url);
+        todasAsImagens.push(response.data.eager[0].secure_url);
 
-        todasAsImagensBling.push({ link: response.data.secure_url });
+        todasAsImagensBling.push({ link: response.data.eager[0].secure_url });
       } catch (error) {
         console.error("Erro no Upload da Imagem: ", error);
       }
@@ -872,9 +872,6 @@ export default function Home() {
     };
 
     try {
-      console.log("Loja:", loja === "");
-      console.log("Quantidade de Imagens:", qtdFiles);
-
       if (loja === "") alert("Selecione a loja BRK 😓");
       if (qtdFiles === 0) alert("Não esqueça as imagens 🖼️");
 
