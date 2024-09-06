@@ -876,9 +876,9 @@ export default function Home() {
       if (qtdFiles === 0) alert("Não esqueça as imagens 🖼️");
 
       if (tipoCadastro === "planilha") {
-        console.log("Dados da Planilha:", variacaoDeProduto);
+        //console.log("Dados da Planilha:", variacaoDeProduto);
 
-        //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
         saveProdutos(dadosBling);
       }
