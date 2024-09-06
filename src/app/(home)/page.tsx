@@ -589,8 +589,6 @@ export default function Home() {
 
     if (tipoDeProduto === "camiseta") {
       if (tipoAlgodao === "semalgodao") {
-        console.log("informações do formulário: ", data);
-
         if (data.tamanho_masculino) {
           relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
             variacaoDeProduto.push({
@@ -707,45 +705,6 @@ export default function Home() {
       }
 
       if (tipoAlgodao === "comalgodao") {
-        if (data.cor_branco) {
-          relacaoDeCores[0].branco.tamanhos.map((item) => {
-            if (item.tamanho !== "PP") {
-              variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
-                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
-                estoque: estoque,
-                preco: preco,
-                produto_variacao: "Variação",
-                tipo_producao: "Terceiros", // backlog Bling 1
-                tipo_do_item: "Mercadoria para Revenda",
-                codigo_pai: data.codigo.toLocaleUpperCase(),
-                url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
-                grupo_de_produtos: "Camiseta Algodão",
-              });
-
-              // Dados Bling
-              dadosVariacoesBling.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
-                formato: "S",
-                gtin: "1234567890123",
-                gtinEmbalagem: "1234567890123",
-                midia: {
-                  imagens: {
-                    externas: imagensCorBrancoBling,
-                  },
-                },
-                variacao: {
-                  nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
-                  ordem: 1,
-                  produtoPai: {
-                    cloneInfo: true,
-                  },
-                },
-              });
-            }
-          });
-        }
-
         if (data.cor_preto) {
           relacaoDeCores[0].preto.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
@@ -824,6 +783,45 @@ export default function Home() {
             }
           });
         }
+
+        if (data.cor_branco) {
+          relacaoDeCores[0].branco.tamanhos.map((item) => {
+            if (item.tamanho !== "PP") {
+              variacaoDeProduto.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                estoque: estoque,
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: data.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Algodão",
+              });
+
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                formato: "S",
+                gtin: "1234567890123",
+                gtinEmbalagem: "1234567890123",
+                midia: {
+                  imagens: {
+                    externas: imagensCorBrancoBling,
+                  },
+                },
+                variacao: {
+                  nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: true,
+                  },
+                },
+              });
+            }
+          });
+        }
       }
     }
 
@@ -874,9 +872,16 @@ export default function Home() {
     };
 
     try {
+      console.log("Loja:", loja === "");
+      console.log("Quantidade de Imagens:", qtdFiles);
+
+      if (loja === "") alert("Selecione a loja BRK 😓");
+      if (qtdFiles === 0) alert("Não esqueça as imagens 🖼️");
+
       if (tipoCadastro === "planilha") {
         console.log("Dados da Planilha:", variacaoDeProduto);
-        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+
+        //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
         saveProdutos(dadosBling);
       }
@@ -1448,7 +1453,7 @@ export default function Home() {
                       type="text"
                       placeholder="Ex: C0..."
                       required
-                      defaultValue={10000}
+                      defaultValue={1000}
                       {...register("estoque")}
                     />
                   </label>
@@ -1503,10 +1508,6 @@ export default function Home() {
                 {tipoAlgodao === "comalgodao" && (
                   // Variações de Cores
                   <div className="flex gap-4">
-                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-masculino">
-                      <input id="genero-masculino" type="checkbox" defaultChecked={true} {...register("cor_branco")} />
-                      <span className="text-zinc-200">Branco</span>
-                    </label>
                     <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-feminino">
                       <input id="genero-feminino" type="checkbox" defaultChecked={true} {...register("cor_preto")} />
                       <span className="text-zinc-200">Preto</span>
@@ -1514,6 +1515,10 @@ export default function Home() {
                     <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-infantil">
                       <input id="genero-infantil" type="checkbox" defaultChecked={true} {...register("cor_azul")} />
                       <span className="text-zinc-200">Azul</span>
+                    </label>
+                    <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="genero-masculino">
+                      <input id="genero-masculino" type="checkbox" defaultChecked={true} {...register("cor_branco")} />
+                      <span className="text-zinc-200">Branco</span>
                     </label>
                   </div>
                 )}
