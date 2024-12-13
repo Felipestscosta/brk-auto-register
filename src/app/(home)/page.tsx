@@ -1,5 +1,5 @@
 "use client";
-import { Barn, BaseballCap, CircleNotch, Empty, FileArrowDown, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, TShirt, UploadSimple } from "@phosphor-icons/react";
+import { Barn, BaseballCap, CircleNotch, Empty, FileArrowDown, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, Tree, TShirt, UploadSimple } from "@phosphor-icons/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CurrencyInput from "react-currency-input-field";
 import { useSearchParams } from "next/navigation";
@@ -230,8 +230,8 @@ const relacaoDeCores = [
 ];
 
 const precos = {
-  camisa: 154.9,
-  camiseta: 94.9,
+  camisa: 159.9,
+  camiseta: 99.9,
   bone: 129.9,
   cortaVento: 229.9,
 };
@@ -872,8 +872,14 @@ export default function Home() {
     };
 
     try {
-      if (loja === "") alert("Selecione a loja BRK 😓");
-      if (qtdFiles === 0) alert("Não esqueça as imagens 🖼️");
+      if (loja === ""){
+        alert("Selecione a loja BRK 😓");
+        return
+      } 
+      if (qtdFiles === 0){
+        alert("Não esqueça as imagens 🖼️");
+        return
+      } 
 
       if (tipoCadastro === "planilha") {
         //console.log("Dados da Planilha:", variacaoDeProduto);
@@ -1117,12 +1123,11 @@ export default function Home() {
         {/* HUD do EAN/GTIN */}
         <div className="fixed flex flex-col top-0 right-0 p-5">
           <label
-            className="relative flex flex-col justify-center items-center text-center rounded-full text-green-400/45 border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]"
+            className="relative flex flex-col justify-center items-center text-center rounded-full text-green-300 border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]"
             htmlFor="upean"
           >
             {/* <UploadSimple className="font-bold" size={36} /> */}
-            <span className="absolute right-0 top-0 p-6">45</span>
-            <p>EAN</p>
+            <span className="flex items-center justify-center h-4 w-4">45</span>
             <input className="hidden" id="upean" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
           </label>
         </div>
@@ -1169,7 +1174,7 @@ export default function Home() {
             </span>
           </button>
           <button
-            onClick={() => setLoja("")}
+            onClick={() => setLoja("brk")}
             type="button"
             className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm rounded-r-lg ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"}`}
           >
@@ -1190,17 +1195,17 @@ export default function Home() {
             }`}
           >
             <Hoodie size={32} />
-            Camisa
+            Camisas
           </button>
           <button
             onClick={() => setTipoDeProduto("camiseta")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-4 px-1 text-sm ${
+            className={`flex flex-col gap-1 items-center justify-center py-4 px-1 text-sm ${
               tipoDeProduto === "camiseta" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
-            <TShirt size={32} />
-            Camiseta
+            <Tree size={32} />
+            Algodão
           </button>
           <button
             onClick={() => setTipoDeProduto("bone")}
@@ -1294,7 +1299,7 @@ export default function Home() {
                       type="text"
                       placeholder="Ex: C0..."
                       required
-                      defaultValue={10000}
+                      defaultValue={1000}
                       {...register("estoque")}
                     />
                   </label>
