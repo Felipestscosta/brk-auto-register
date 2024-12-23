@@ -156,6 +156,10 @@ const relacaoDeCores = [
           cor_nome: "Branco",
           tamanho: "G1",
         },
+        {
+          cor_nome: "Branco",
+          tamanho: "G2",
+        },
       ],
     },
     preto: {
@@ -180,6 +184,10 @@ const relacaoDeCores = [
           cor_nome: "Preto",
           tamanho: "G1",
         },
+        {
+          cor_nome: "Preto",
+          tamanho: "G2",
+        },
       ],
     },
     azul: {
@@ -203,6 +211,10 @@ const relacaoDeCores = [
         {
           cor_nome: "Azul",
           tamanho: "G1",
+        },
+        {
+          cor_nome: "Azul",
+          tamanho: "G2",
         },
       ],
     },
@@ -435,7 +447,8 @@ export default function Home() {
         codigo_pai: "",
         marca: loja, // backlog Loja
         url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
-        grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || ((tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgoda') && "Camiseta Algodão") ||(tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
+        grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || ((tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') && "Camiseta Algodão") ||(tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
+        ncm: (tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00'
       },
     ];
 
