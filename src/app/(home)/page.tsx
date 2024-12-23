@@ -435,7 +435,7 @@ export default function Home() {
         codigo_pai: "",
         marca: loja, // backlog Loja
         url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
-        grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || (tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
+        grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || ((tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgoda') && "Camiseta Algodão") ||(tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
       },
     ];
 
@@ -696,6 +696,7 @@ export default function Home() {
                 codigo_pai: data.codigo.toLocaleUpperCase(),
                 url_imagens_externas: imagensCorPreto.join("|"), //backlog clodinary,
                 grupo_de_produtos: "Camiseta Algodão",
+                ncm: '6205.20.00',
               });
             }
 
@@ -736,6 +737,7 @@ export default function Home() {
                 marca: "Brk Agro", // backlog Loja
                 url_imagens_externas: imagensCorAzul.join("|"), //backlog clodinary,
                 grupo_de_produtos: "Camiseta Algodão",
+                ncm: '6205.20.00',
               });
 
               // Dados Bling
@@ -775,6 +777,7 @@ export default function Home() {
                 codigo_pai: data.codigo.toLocaleUpperCase(),
                 url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
                 grupo_de_produtos: "Camiseta Algodão",
+                ncm: '6205.20.00',
               });
 
               // Dados Bling
