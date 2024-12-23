@@ -872,14 +872,14 @@ export default function Home() {
     };
 
     try {
-      if (loja === ""){
-        alert("Selecione a loja BRK 😓");
-        return
-      } 
-      if (qtdFiles === 0){
-        alert("Não esqueça as imagens 🖼️");
-        return
-      } 
+      // if (loja === ""){
+      //   alert("Selecione a loja BRK 😓");
+      //   return
+      // } 
+      // if (qtdFiles === 0){
+      //   alert("Não esqueça as imagens 🖼️");
+      //   return
+      // } 
 
       if (tipoCadastro === "planilha") {
         //console.log("Dados da Planilha:", variacaoDeProduto);
@@ -969,76 +969,6 @@ export default function Home() {
     writeFileXLSX(workbook, `${codigoProduto}-bling-3.xlsx`, {
       compression: true,
     });
-
-    // Gera Planilha do Bling 1
-    const rowsBling1 = Array.from(dadosDaPlanilha).map((row: any) => ({
-      ID: "",
-      Código: row.codigo, // Dinâmico
-      Descrição: row.descricao, // Dinâmico
-      Unidade: "UN",
-      NCM: "6101.30.00",
-      Origem: parseFloat("0"),
-      Preço: row.preco, // Dinâmico
-      "Valor IPI fixo": parseFloat("0"),
-      Observações: "",
-      Situação: "Ativo",
-      Estoque: parseFloat("0"), // Dinâmico
-      "Preço de custo": parseFloat("55"),
-      "Cód. no fornecedor": "",
-      Fornecedor: "",
-      Localização: "",
-      "Estoque máximo": parseFloat("0"),
-      "Estoque mínimo": parseFloat("0"),
-      "Peso líquido (Kg)": "0,250",
-      "Peso bruto (Kg)": "0,250",
-      "GTIN/EAN": "", // Dinâmico
-      "GTIN/EAN da Embalagem": "", // Dinâmico
-      "Largura do produto": parseFloat("10"),
-      "Altura do Produto": parseFloat("11"),
-      "Profundidade do produto": parseFloat("16"),
-      "Data Validade": "",
-      "Descrição do Produto no Fornecedor": "",
-      "Descrição Complementar": "",
-      "Itens p/ caixa": parseFloat("1"),
-      "Produto Variação": row.produto_variacao, // Dinâmico
-      "Tipo Produção": "Própria", // Dinâmico
-      "Classe de enquadramento do IPI": "",
-      "Código na Lista de Serviços": "",
-      "Tipo do item": "Produto Acabado", // Dinâmico
-      "Grupo de Tags/Tags": "",
-      Tributos: parseFloat("0"),
-      "Código Pai": row.codigo_pai, // Dinâmico
-      "Código Integração": parseFloat("0"),
-      "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: (loja === "" && "") || (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
-      CEST: "28.038.00",
-      Volumes: parseFloat("1"),
-      "Descrição Curta": "",
-      "Cross-Docking": "",
-      "URL Imagens Externas": row.url_imagens_externas, // Dinâmico
-      "Link Externo": "",
-      "Meses Garantia no Fornecedor": parseFloat("0"),
-      "Clonar dados do pai": "NÂO",
-      "Condição do Produto": "NOVO",
-      "Frete Grátis": "NÂO",
-      "Número FCI": "",
-      Vídeo: "",
-      Departamento: "",
-      "Unidade de Medida": "Centímetro",
-      "Preço de Compra": parseFloat("0"),
-      "Valor base ICMS ST para retenção": parseFloat("0"),
-      "Valor ICMS ST para retenção": parseFloat("0"),
-      "Valor ICMS próprio do substituto": parseFloat("0"),
-      "Categoria do produto": "",
-      "Informações Adicionais": "",
-    }));
-
-    const worksheetBling1 = utils.json_to_sheet(rowsBling1);
-    const workbookBling1 = utils.book_new();
-
-    utils.book_append_sheet(workbookBling1, worksheetBling1);
-
-    writeFileXLSX(workbookBling1, `${codigoProduto}-bling-1.xlsx`);
 
     setCarregando(false);
   }
