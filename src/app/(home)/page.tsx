@@ -709,7 +709,7 @@ export default function Home() {
           relacaoDeCores[0].preto.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
                 descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -724,7 +724,7 @@ export default function Home() {
 
             // Dados Bling
             dadosVariacoesBling.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+              codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
               formato: "S",
               gtin: "1234567890123",
               gtinEmbalagem: "1234567890123",
@@ -748,7 +748,7 @@ export default function Home() {
           relacaoDeCores[0].azul.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
                 descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -938,7 +938,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: loja === "" ? "" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      Marca: loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
