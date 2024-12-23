@@ -62,15 +62,7 @@ const relacaoDeTamanhos = [
         {
           nome: "G2",
           sigla_camisa: "G2",
-        },
-        {
-          nome: "G3",
-          sigla_camisa: "G3",
-        },
-        {
-          nome: "G4",
-          sigla_camisa: "G4",
-        },
+        }
       ],
     },
     feminino: {
@@ -146,10 +138,6 @@ const relacaoDeCores = [
       tamanhos: [
         {
           cor_nome: "Branco",
-          tamanho: "PP",
-        },
-        {
-          cor_nome: "Branco",
           tamanho: "P",
         },
         {
@@ -172,10 +160,6 @@ const relacaoDeCores = [
     },
     preto: {
       tamanhos: [
-        {
-          cor_nome: "Preto",
-          tamanho: "PP",
-        },
         {
           cor_nome: "Preto",
           tamanho: "P",
@@ -202,10 +186,6 @@ const relacaoDeCores = [
       tamanhos: [
         {
           cor_nome: "Azul",
-          tamanho: "PP",
-        },
-        {
-          cor_nome: "Azul",
           tamanho: "P",
         },
         {
@@ -230,6 +210,7 @@ const relacaoDeCores = [
 ];
 
 const precos = {
+  camisetaAlgodao: 119.9,
   camisa: 159.9,
   camiseta: 99.9,
   bone: 129.9,
@@ -477,8 +458,8 @@ export default function Home() {
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
             descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
-            estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
-            preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+            estoque: estoque,
+            preco: preco,
             produto_variacao: "Variação",
             tipo_producao: "Terceiros", // backlog Bling 1
             tipo_do_item: "Mercadoria para Revenda",
@@ -521,7 +502,6 @@ export default function Home() {
             tipo_producao: "Terceiros", // backlog Bling 1
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
-            marca: "Brk Agro", // backlog Loja
             url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
             grupo_de_produtos: "Camisa Master",
           });
@@ -559,7 +539,6 @@ export default function Home() {
             tipo_producao: "Terceiros", // backlog Bling 1
             tipo_do_item: "Mercadoria para Revenda",
             codigo_pai: data.codigo.toLocaleUpperCase(),
-            marca: "Brk Agro", // backlog Loja
             url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
             grupo_de_produtos: "Camisa Master",
           });
@@ -594,13 +573,12 @@ export default function Home() {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
               descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
-              estoque: item.nome === "G3" || item.nome === "G4" ? 0 : estoque,
-              preco: item.nome === "G3" || item.nome === "G4" ? preco + 20 : preco,
+              estoque: estoque,
+              preco: preco,
               produto_variacao: "Variação",
               tipo_producao: "Terceiros", // backlog Bling 1
               tipo_do_item: "Mercadoria para Revenda",
               codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
               url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
               grupo_de_produtos: "Camiseta Casual",
             });
@@ -676,7 +654,6 @@ export default function Home() {
               tipo_producao: "Terceiros", // backlog Bling 1
               tipo_do_item: "Mercadoria para Revenda",
               codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
               url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
               grupo_de_produtos: "Camiseta Casual",
             });
@@ -854,7 +831,7 @@ export default function Home() {
       actionEstoque: "T",
       tributacao: {
         origem: 0,
-        ncm: "6101.30.00",
+        ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ?? '6205.20.00',
         cest: "28.038.00",
         codigoListaServicos: "",
         spedTipoItem: "",
@@ -904,7 +881,7 @@ export default function Home() {
       Código: row.codigo, // Dinâmico
       Descrição: row.descricao, // Dinâmico
       Unidade: "UN",
-      NCM: "6101.30.00",
+      NCM: row.ncm,
       Origem: parseFloat("0"),
       Preço: row.preco, // Dinâmico
       "Valor IPI fixo": parseFloat("0"),
