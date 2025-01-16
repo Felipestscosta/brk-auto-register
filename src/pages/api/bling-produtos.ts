@@ -11,8 +11,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         method: "get",
         url: "https://www.bling.com.br/Api/v3/produtos?pagina=1",
         headers: {
-          client_id: "c31b56f93fafffa81d982a9e409980829942169c",
-          client_secret: "baacb0faf14d5c8de72f58605931db6f7262e9edd535e05665edb0a4a568",
           Authorization: `Bearer ${token}`,
         },
       });
