@@ -1,26 +1,27 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import axios from 'axios';
+import mysql from 'mysql2/promise'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const { code } = req.query;
-  const clientId = `${process.env.NEXT_PUBLIC_BLING_API_CLIENT_ID}`;
-  const clientSecret = `${process.env.NEXT_PUBLIC_BLING_API_CLIENT_SECRET}`; 
+  async function MySQL(){
+    const connection = await mysql.createPool({
+      host: process.env.NEXT_PUBLIC_HOST,
+      user: process.env.NEXT_PUBLIC_USER,
+      database: process.env.NEXT_PUBLIC_DATABASE,
+      password: process.env.NEXT_PUBLIC_PASSWORD
+    })
+  
+    return connection
+  }
 
   try {
-    const response = await axios({
-      method: "POST",
-      url: "https://www.bling.com.br/Api/v3/oauth/token",
-      data: {
-        grant_type: 'authorization_code',
-        code: code
-      },
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString('base64')}`,
-      }
-    })
+    const mysql = await MySQL()
 
-    res.status(200).json(response.data);
+    const query = `SELECT access_token AS token from tokens WHERE Sistemas = 'Bling 3'`
+    const [ rows ] = await mysql.execute( query )
+    
+    await mysql.end()
+
+    res.status(200).json(rows);
   } catch (erro: any) {
     res.status(500).json({ error: erro.response.data });
   }

@@ -8,14 +8,14 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
   if(tipoMetodo === 'POST'){
     try {
-      const retorno = await axios.post(
+      await axios.post(
         'https://bling.com.br/Api/v3/estoques',
         {
           "produto": {
             "id": data.id
           },
           "deposito": {
-            "id": 14887659608
+            "id": 14887422922
           },
           "operacao": "B",
           "quantidade": 1000,

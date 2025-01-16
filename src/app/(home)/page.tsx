@@ -230,9 +230,6 @@ const precos = {
 };
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const codigoBling = searchParams?.get("code");
-
   const [files, setFiles] = useState<any[]>([]);
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -287,31 +284,15 @@ export default function Home() {
     }
   }
 
-  //Autenticação do Bling
-  const iniciarOAuth = () => {
-    const clientId = `${process.env.NEXT_PUBLIC_BLING_API_CLIENT_ID}`;
-    const authUrl = `https://www.bling.com.br/b/Api/v3/oauth/authorize?response_type=code&client_id=${clientId}&state=a223bb05e34e202f5cc198603b351957`;
-    window.location.href = authUrl;
-  };
-
-  //Salva o Token do Bling
+  //Captura e Armazena o Token do Bling
   function getToken() {
-    axios.get(`/api/bling-token?code=${codigoBling}`).then((res: any) => {
-      if (res.error === undefined) {
-        const token = res.data.access_token;
-        localStorage.setItem("tokenBling", token);
-      } else {
-        alert("Ops! Houve um problema na geração do Token ⛔");
-      }
+    axios.get(`/api/bling-token`).then((res: any) => {
+      const token = res.data[0].token;
+      localStorage.setItem("tokenBling", token);
     });
   }
 
   useEffect(() => {
-    // if (codigoBling === null) iniciarOAuth();
-    // if (codigoBling !== "") {
-    //   if (localStorage.getItem("tokenBling") === "" || localStorage.getItem("tokenBling") === null) getToken();
-    // }
-
     () => files.forEach((file) => URL.revokeObjectURL(file.preview));
   });
 
@@ -508,7 +489,7 @@ export default function Home() {
           //Variacoes para Planilha
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero:Feminino;Tamanho:${item.nome}`,
+            descricao: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
             estoque: estoque,
             preco: preco,
             produto_variacao: "Variação",
@@ -545,7 +526,7 @@ export default function Home() {
         relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
           variacaoDeProduto.push({
             codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero:Infantil;Tamanho:${item.nome}`,
+            descricao: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
             estoque: estoque,
             preco: preco,
             produto_variacao: "Variação",
@@ -622,7 +603,7 @@ export default function Home() {
           relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Gênero:Feminino;Tamanho:${item.nome}`,
+              descricao: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
@@ -660,7 +641,7 @@ export default function Home() {
           relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
             variacaoDeProduto.push({
               codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Gênero:Infantil;Tamanho:${item.nome}`,
+              descricao: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
@@ -801,7 +782,7 @@ export default function Home() {
                 gtinEmbalagem: "1234567890123",
                 midia: {
                   imagens: {
-                    externas: imagensCorBrancoBling,
+                    imagensURL: imagensCorBrancoBling,
                   },
                 },
                 variacao: {
@@ -858,7 +839,7 @@ export default function Home() {
       },
       midia: {
         imagens: {
-          externas: todasAsImagensBling,
+          imagensURL: todasAsImagensBling,
         },
       },
       variacoes: dadosVariacoesBling,
