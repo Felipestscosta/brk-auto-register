@@ -2,13 +2,13 @@
 import { Barn, BaseballCap, CircleNotch, Empty, FileArrowDown, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, Tree, TShirt, UploadSimple } from "@phosphor-icons/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import CurrencyInput from "react-currency-input-field";
-import { useSearchParams } from "next/navigation";
 
 import { writeFileXLSX, utils, readFile } from "xlsx";
 import { useDropzone } from "react-dropzone";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
+import Cloudflare from 'cloudflare'
 // import ean from "@/pages/api/ean";
 
 type esquemaDeDadosFormulario = {
@@ -364,14 +364,34 @@ export default function Home() {
       return numA - numB;
     });
 
+    const client = new Cloudflare({
+      apiEmail: process.env.NEXT_PUBLIC_EMAIL,
+      apiKey: process.env.NEXT_PUBLIC_API_KEY,
+    });
+
     for (let i = 0; i < qtdFiles; i++) {
       const file = filesOrdenados[i];
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("upload_preset", "ml_default");
+      // formData.append("upload_preset", "ml_default");
+
+
 
       try {
-        const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
+        // const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
+        // const response = await axios.post(`https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_ACCOUNT_ID}/images/v1/ecommerce`, formData);
+        
+        const options = {
+          method: 'POST',
+          url: `https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_ACCOUNT_ID}/images/v1`,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_CLOUDFLARE_TOKEN}`,
+          },
+          data: formData
+        };
+        const response = await axios.request(options);
+        console.log(response);
 
         // Imagens por Gênero
         if (file.name.toLowerCase().includes("masc")) {
@@ -426,7 +446,7 @@ export default function Home() {
         tipo_producao: "Terceiros", // backlog Bling 1
         tipo_do_item: "Mercadoria para Revenda",
         codigo_pai: "",
-        marca: loja, // backlog Loja
+        marca: loja,
         url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
         grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || ((tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') && "Camiseta Algodão") ||(tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
         ncm: (tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00'
@@ -443,7 +463,7 @@ export default function Home() {
           // var idEAN = retornoCapturaEan.data.data.id;
           // var numeroEAN = retornoCapturaEan.data.data.numero;
 
-          // //Sinaliza EAN Como Utilizado
+          //Sinaliza EAN Como Utilizado
           // if (idEAN) {
           //   await axios.put("/api/ean", { dataEan: idEAN });
           // }
@@ -680,7 +700,8 @@ export default function Home() {
           relacaoDeCores[0].preto.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                // codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                codigo: `${data.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
                 descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -720,7 +741,8 @@ export default function Home() {
           relacaoDeCores[0].azul.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                // codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                codigo: `${data.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
                 descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
@@ -761,7 +783,8 @@ export default function Home() {
           relacaoDeCores[0].branco.tamanhos.map((item) => {
             if (item.tamanho !== "PP") {
               variacaoDeProduto.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                // codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                codigo: `${data.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
                 descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
                 estoque: estoque,
                 preco: preco,
