@@ -373,25 +373,18 @@ export default function Home() {
       const file = filesOrdenados[i];
       const formData = new FormData();
       formData.append("file", file);
-      // formData.append("upload_preset", "ml_default");
-
-
 
       try {
+        // Requisição Original
         // const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
+
+        // Primeiro Teste
         // const response = await axios.post(`https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_ACCOUNT_ID}/images/v1/ecommerce`, formData);
         
-        const options = {
-          method: 'POST',
-          url: `https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_ACCOUNT_ID}/images/v1`,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_CLOUDFLARE_TOKEN}`,
-          },
-          data: formData
-        };
-        const response = await axios.request(options);
-        console.log(response);
+
+        // Terceiro Teste
+        const response = await axios.post(`/api/cloudflare-images`, formData);
+        console.log('Arquivo de Imagem: ', formData)
 
         // Imagens por Gênero
         if (file.name.toLowerCase().includes("masc")) {
@@ -881,7 +874,7 @@ export default function Home() {
       if (tipoCadastro === "planilha") {
         //console.log("Dados da Planilha:", variacaoDeProduto);
 
-        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+        //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
         saveProdutos(dadosBling);
       }
