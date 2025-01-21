@@ -375,52 +375,43 @@ export default function Home() {
       formData.append("file", file);
 
       try {
-        // Requisição Original
-        // const response = await axios.post("https://api.cloudinary.com/v1_1/daruxsllg/image/upload", formData);
-
-        // Primeiro Teste
-        // const response = await axios.post(`https://api.cloudflare.com/client/v4/accounts/${process.env.NEXT_PUBLIC_ACCOUNT_ID}/images/v1/ecommerce`, formData);
-        
-
-        // Terceiro Teste
         const response = await axios.post(`/api/cloudflare-images`, formData);
-        console.log('Arquivo de Imagem: ', formData)
-
+        
         // Imagens por Gênero
         if (file.name.toLowerCase().includes("masc")) {
-          imagensMasculinas.push(response.data.eager[0].secure_url);
-          imagensMasculinasBling.push({ link: response.data.eager[0].secure_url });
+          imagensMasculinas.push(response.data.result.variants[1]);
+          imagensMasculinasBling.push({ link: response.data.result.variants[1] });
         }
 
         if (file.name.toLowerCase().includes("fem")) {
-          imagensFemininas.push(response.data.eager[0].secure_url);
-          imagensFemininasBling.push({ link: response.data.eager[0].secure_url });
+          imagensFemininas.push(response.data.result.variants[1]);
+          imagensFemininasBling.push({ link: response.data.result.variants[1] });
         }
 
         if (file.name.toLowerCase().includes("inf")) {
-          imagensInfantis.push(response.data.eager[0].secure_url);
-          imagensInfantisBling.push({ link: response.data.eager[0].secure_url });
+          imagensInfantis.push(response.data.result.variants[1]);
+          imagensInfantisBling.push({ link: response.data.result.variants[1] });
         }
 
         // Imagens por Cores
         if (file.name.toLowerCase().includes("branco")) {
-          imagensCorBranco.push(response.data.eager[0].secure_url);
-          imagensCorBrancoBling.push({ link: response.data.eager[0].secure_url });
+          imagensCorBranco.push(response.data.result.variants[1]);
+          imagensCorBrancoBling.push({ link: response.data.result.variants[1] });
         }
 
         if (file.name.toLowerCase().includes("preto")) {
-          imagensCorPreto.push(response.data.eager[0].secure_url);
-          imagensCorPretoBling.push({ link: response.data.eager[0].secure_url });
+          imagensCorPreto.push(response.data.result.variants[1]);
+          imagensCorPretoBling.push({ link: response.data.result.variants[1] });
         }
 
         if (file.name.toLowerCase().includes("azul")) {
-          imagensCorAzul.push(response.data.eager[0].secure_url);
-          imagensCorAzulBling.push({ link: response.data.eager[0].secure_url });
+          imagensCorAzul.push(response.data.result.variants[1]);
+          imagensCorAzulBling.push({ link: response.data.result.variants[1] });
         }
 
-        todasAsImagens.push(response.data.eager[0].secure_url);
+        todasAsImagens.push(response.data.result.variants[1]);
 
-        todasAsImagensBling.push({ link: response.data.eager[0].secure_url });
+        todasAsImagensBling.push({ link: response.data.result.variants[1] });
       } catch (error) {
         console.error("Erro no Upload da Imagem: ", error);
       }
@@ -872,9 +863,9 @@ export default function Home() {
       // } 
 
       if (tipoCadastro === "planilha") {
-        //console.log("Dados da Planilha:", variacaoDeProduto);
+        // console.log("Dados da Planilha:", variacaoDeProduto);
 
-        //geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
+        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
         saveProdutos(dadosBling);
       }
