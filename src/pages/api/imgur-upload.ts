@@ -13,8 +13,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { image } = req.body;
 
-    console.log(image)
-
     if (!image) {
       return res
         .status(400)
@@ -22,7 +20,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     const response = await axios.post(
-      "https://api.imgur.com/3/upload",
+      "https://api.imgur.com/3/image",
       {
         image,
         type: "base64",
@@ -33,6 +31,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
         },
       }
     );
+    console.log(response)
     const { link } = response.data.data;
     res.status(200).json({ url: link });
   } catch (error: any) {
