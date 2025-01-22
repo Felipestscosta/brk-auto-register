@@ -229,6 +229,11 @@ const precos = {
   cortaVento: 229.9,
 };
 
+const client = new Cloudflare({
+  apiEmail: process.env.NEXT_PUBLIC_EMAIL,
+  apiKey: process.env.NEXT_PUBLIC_API_KEY,
+});
+
 export default function Home() {
   const [files, setFiles] = useState<any[]>([]);
   const { acceptedFiles, getRootProps, getInputProps } = useDropzone({
@@ -324,6 +329,16 @@ export default function Home() {
     }
   }
 
+  //Converte arquivo de Imagem para Base64 para subir no Imgur
+  function fileToBase64(file:any) {
+    return new Promise((resolve, reject) => {
+      const reader: any = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]); // Remove o cabeçalho "data:image/png;base64,"
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   //Captura do Formulário
   const {
     register,
@@ -364,54 +379,52 @@ export default function Home() {
       return numA - numB;
     });
 
-    const client = new Cloudflare({
-      apiEmail: process.env.NEXT_PUBLIC_EMAIL,
-      apiKey: process.env.NEXT_PUBLIC_API_KEY,
-    });
-
+    //Upload das imagens separando por Gêneros e Cores por tipo de produto
     for (let i = 0; i < qtdFiles; i++) {
       const file = filesOrdenados[i];
       const formData = new FormData();
       formData.append("file", file);
+      const fileData = await fileToBase64(file);
 
       try {
-        const response = await axios.post(`/api/cloudflare-images`, formData);
+        const response = await axios.post(`/api/imgur-upload`, {image: fileData});
+        const urlExternaImagem = response.data.url;
         
         // Imagens por Gênero
         if (file.name.toLowerCase().includes("masc")) {
-          imagensMasculinas.push(response.data.result.variants[1]);
-          imagensMasculinasBling.push({ link: response.data.result.variants[1] });
+          imagensMasculinas.push(urlExternaImagem);
+          imagensMasculinasBling.push({ link: urlExternaImagem });
         }
 
         if (file.name.toLowerCase().includes("fem")) {
-          imagensFemininas.push(response.data.result.variants[1]);
-          imagensFemininasBling.push({ link: response.data.result.variants[1] });
+          imagensFemininas.push(urlExternaImagem);
+          imagensFemininasBling.push({ link: urlExternaImagem });
         }
 
         if (file.name.toLowerCase().includes("inf")) {
-          imagensInfantis.push(response.data.result.variants[1]);
-          imagensInfantisBling.push({ link: response.data.result.variants[1] });
+          imagensInfantis.push(urlExternaImagem);
+          imagensInfantisBling.push({ link: urlExternaImagem });
         }
 
         // Imagens por Cores
         if (file.name.toLowerCase().includes("branco")) {
-          imagensCorBranco.push(response.data.result.variants[1]);
-          imagensCorBrancoBling.push({ link: response.data.result.variants[1] });
+          imagensCorBranco.push(urlExternaImagem);
+          imagensCorBrancoBling.push({ link: urlExternaImagem });
         }
 
         if (file.name.toLowerCase().includes("preto")) {
-          imagensCorPreto.push(response.data.result.variants[1]);
-          imagensCorPretoBling.push({ link: response.data.result.variants[1] });
+          imagensCorPreto.push(urlExternaImagem);
+          imagensCorPretoBling.push({ link: urlExternaImagem });
         }
 
         if (file.name.toLowerCase().includes("azul")) {
-          imagensCorAzul.push(response.data.result.variants[1]);
-          imagensCorAzulBling.push({ link: response.data.result.variants[1] });
+          imagensCorAzul.push(urlExternaImagem);
+          imagensCorAzulBling.push({ link: urlExternaImagem });
         }
 
-        todasAsImagens.push(response.data.result.variants[1]);
+        todasAsImagens.push(urlExternaImagem);
 
-        todasAsImagensBling.push({ link: response.data.result.variants[1] });
+        todasAsImagensBling.push({ link: urlExternaImagem });
       } catch (error) {
         console.error("Erro no Upload da Imagem: ", error);
       }
@@ -853,17 +866,17 @@ export default function Home() {
     };
 
     try {
-      // if (loja === ""){
-      //   alert("Selecione a loja BRK 😓");
-      //   return
-      // } 
-      // if (qtdFiles === 0){
-      //   alert("Não esqueça as imagens 🖼️");
-      //   return
-      // } 
-
       if (tipoCadastro === "planilha") {
         // console.log("Dados da Planilha:", variacaoDeProduto);
+
+        if (loja === ""){
+          alert("Selecione a loja BRK 😓");
+          return
+        } 
+        if (qtdFiles === 0){
+          alert("Não esqueça as imagens 🖼️");
+          return
+        }
 
         geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
       } else if (tipoCadastro === "bling") {
