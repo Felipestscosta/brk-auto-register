@@ -25,10 +25,16 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   // Cria novo Produto
   if(tipoMetodo === 'POST'){
     const dataNovoProduto = req.body;
-
+    //console.log(dataNovoProduto)
     try {
       // CRIA PRODUTO
-      const resCadastroProduto = await axios.post("https://www.bling.com.br/Api/v3/produtos", dataNovoProduto,{ headers: {Authorization: `Bearer ${token}`} });
+      const resCadastroProduto = await axios.post(
+        "https://www.bling.com.br/Api/v3/produtos", 
+        dataNovoProduto,
+        { 
+          headers: {Authorization: `Bearer ${token}`} 
+        }
+      );
 
       res.status(201).json({ idProduto: resCadastroProduto.data.data.id, variacoes: resCadastroProduto.data.data.variations.saved });
     } catch (error: any) {

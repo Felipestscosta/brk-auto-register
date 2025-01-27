@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
 import Cloudflare from 'cloudflare'
+import { ConnectorListResponsesSinglePage } from "cloudflare/resources/magic-transit/connectors.mjs";
 // import ean from "@/pages/api/ean";
 
 type esquemaDeDadosFormulario = {
@@ -250,6 +251,7 @@ export default function Home() {
       );
     },
   });
+  const [quantidadeEans, setQuantidadeEans] = useState(0);
   const [informacoesSeo, setInformacoesSeo] = useState(["", "", ""]);
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
@@ -289,44 +291,54 @@ export default function Home() {
     }
   }
 
+  async function getNumeroEans() {
+    const dataNumeroEans = await axios.get('api/ean?quantidadeeans=true');
+    setQuantidadeEans(dataNumeroEans.data.count)
+  }
+
   //Captura e Armazena o Token do Bling
-  function getToken() {
-    axios.get(`/api/bling-token`).then((res: any) => {
-      const token = res.data[0].token;
-      localStorage.setItem("tokenBling", token);
-    });
+  async function getToken() {
+      return await axios.get(`/api/bling-token`);
   }
 
   useEffect(() => {
+    getNumeroEans();
+
     () => files.forEach((file) => URL.revokeObjectURL(file.preview));
   });
 
   //Salva Produto no Bling
-  async function saveProdutos(data: any) {
-    const retornoCadastroProduto: any = await axios.post(`/api/bling-produtos?token=${localStorage.getItem("tokenBling")}`, data);
+  async function saveProdutos(data: any) {  
+
+    const retornoObtemToken = await getToken();
+    const token = retornoObtemToken.data[0].token;
+    // const token = 'bc12a4341494c9cc8b4652d250d629320cfbb737';
+
+    const retornoCadastroProduto: any = await axios.post(`/api/bling-produtos?token=${token}`, data);
     const variacoes = retornoCadastroProduto.data.variacoes;
     const quantidadeVariacoes = Object.keys(variacoes).length;
 
-    if (quantidadeVariacoes !== 0) {
-      for (let i = 0; i < quantidadeVariacoes; i++) {
-        const variacao = variacoes[i];
-        try {
-          if (!variacao.nomeVariacao.includes("G3") && !variacao.nomeVariacao.includes("G4")) {
-            await axios.post(`/api/bling-estoques?token=${localStorage.getItem("tokenBling")}`, { id: variacao.id });
-          }
-        } catch (error) {
-          console.error(`Erro na requisição para variação ${variacao.id}:`, error);
-        }
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
-    } else {
-      axios.post(`/api/bling-estoques?token=${localStorage.getItem("tokenBling")}`, { id: retornoCadastroProduto.idProduto });
-    }
+    // if (quantidadeVariacoes !== 0) {
+    //   for (let i = 0; i < quantidadeVariacoes; i++) {
+    //     const variacao = variacoes[i];
+    //     try {
+    //       if (!variacao.nomeVariacao.includes("G3") && !variacao.nomeVariacao.includes("G4")) {
+    //         await axios.post(`/api/bling-estoques?token=${token}`, { id: variacao.id });
+    //       }
+    //     } catch (error) {
+    //       console.error(`Erro na requisição para variação ${variacao.id}:`, error);
+    //     }
+    //     await new Promise((resolve) => setTimeout(resolve, 0));
+    //   }
+    // } else {
+    //   axios.post(`/api/bling-estoques?token=${token}`, { id: retornoCadastroProduto.idProduto });
+    // }
 
     if (retornoCadastroProduto.status === 201) {
       alert("Produto Cadastrado com sucesso 🚀");
       setCarregando(false);
     }
+      
   }
 
   //Converte arquivo de Imagem para Base64 para subir no Imgur
@@ -346,8 +358,10 @@ export default function Home() {
     formState: { errors },
   } = useForm<esquemaDeDadosFormulario>();
 
-  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (data) => {
+  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (dadosFormulario) => {
     setCarregando(true);
+
+    var nomeLoja = loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors");
 
     //Imagens Bling
     let todasAsImagensBling = [];
@@ -371,438 +385,443 @@ export default function Home() {
 
     const qtdFiles = Object.keys(files).length;
 
-    //Ordena as Imagens em Ordem Ascendente
-    const filesOrdenados = files.toSorted((a, b) => {
-      const numA = parseInt(a.name.split("_")[0], 10);
-      const numB = parseInt(b.name.split("_")[0], 10);
+    if (loja === ""){
+          alert("Selecione a loja BRK 😓");
+          setCarregando(false);
+          return
+    } 
 
-      return numA - numB;
-    });
-
-    //Upload das imagens separando por Gêneros e Cores por tipo de produto
-    for (let i = 0; i < qtdFiles; i++) {
-      const file = filesOrdenados[i];
-      const formData = new FormData();
-      formData.append("file", file);
-      const fileData = await fileToBase64(file);
-
-      try {
-        const response = await axios.post(`/api/imgur-upload`, {image: fileData});
-        const urlExternaImagem = response.data.url;
-        
-        // Imagens por Gênero
-        if (file.name.toLowerCase().includes("masc")) {
-          imagensMasculinas.push(urlExternaImagem);
-          imagensMasculinasBling.push({ link: urlExternaImagem });
-        }
-
-        if (file.name.toLowerCase().includes("fem")) {
-          imagensFemininas.push(urlExternaImagem);
-          imagensFemininasBling.push({ link: urlExternaImagem });
-        }
-
-        if (file.name.toLowerCase().includes("inf")) {
-          imagensInfantis.push(urlExternaImagem);
-          imagensInfantisBling.push({ link: urlExternaImagem });
-        }
-
-        // Imagens por Cores
-        if (file.name.toLowerCase().includes("branco")) {
-          imagensCorBranco.push(urlExternaImagem);
-          imagensCorBrancoBling.push({ link: urlExternaImagem });
-        }
-
-        if (file.name.toLowerCase().includes("preto")) {
-          imagensCorPreto.push(urlExternaImagem);
-          imagensCorPretoBling.push({ link: urlExternaImagem });
-        }
-
-        if (file.name.toLowerCase().includes("azul")) {
-          imagensCorAzul.push(urlExternaImagem);
-          imagensCorAzulBling.push({ link: urlExternaImagem });
-        }
-
-        todasAsImagens.push(urlExternaImagem);
-
-        todasAsImagensBling.push({ link: urlExternaImagem });
-      } catch (error) {
-        console.error("Erro no Upload da Imagem: ", error);
-      }
+    if (qtdFiles === 0){
+      alert("Não esqueça as imagens 🖼️");
+      setCarregando(false);
+      return
     }
 
-    // Dados da Planilha
-    var preco = parseFloat(data.preco.replace("R$", "").replace(".", "").replace(",", "."));
-    var estoque = parseInt(data.estoque);
-    const primeiraLinhaDaPlanilha = [
-      {
-        codigo: data.codigo.toLocaleUpperCase(),
-        descricao: data.titulo,
-        estoque: parseFloat("0"),
-        preco: preco,
-        produto_variacao: "Produto",
-        tipo_producao: "Terceiros", // backlog Bling 1
-        tipo_do_item: "Mercadoria para Revenda",
-        codigo_pai: "",
-        marca: loja,
-        url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
-        grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || ((tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') && "Camiseta Algodão") ||(tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
-        ncm: (tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00'
-      },
-    ];
-
-    var variacaoDeProduto: any = [...primeiraLinhaDaPlanilha];
-
-    var dadosVariacoesBling: any = [];
-    if (tipoDeProduto === "camisa") {
-      if (data.tamanho_masculino) {
-        relacaoDeTamanhos[0].masculino.tamanhos.map(async (item) => {
-          // var retornoCapturaEan = await axios.get("/api/ean");
-          // var idEAN = retornoCapturaEan.data.data.id;
-          // var numeroEAN = retornoCapturaEan.data.data.numero;
-
-          //Sinaliza EAN Como Utilizado
-          // if (idEAN) {
-          //   await axios.put("/api/ean", { dataEan: idEAN });
-          // }
-
-          //Variacoes para Planilha
-          variacaoDeProduto.push({
-            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
-            estoque: estoque,
-            preco: preco,
-            produto_variacao: "Variação",
-            tipo_producao: "Terceiros", // backlog Bling 1
-            tipo_do_item: "Mercadoria para Revenda",
-            codigo_pai: data.codigo.toLocaleUpperCase(),
-            url_imagens_externas: imagensMasculinas.join("|"),
-            grupo_de_produtos: "Camisa Master",
-          });
-
-          // Dados Bling
-          dadosVariacoesBling.push({
-            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            formato: "S",
-            gtin: "1234567890123",
-            gtinEmbalagem: "1234567890123",
-            midia: {
-              imagens: {
-                externas: imagensMasculinasBling,
-              },
-            },
-            variacao: {
-              nome: `Gênero:Masculino;Tamanho:${item.nome}`,
-              ordem: 1,
-              produtoPai: {
-                cloneInfo: true,
-              },
-            },
-          });
-        });
-      }
-
-      if (data.tamanho_feminino) {
-        relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
-          //Variacoes para Planilha
-          variacaoDeProduto.push({
-            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
-            estoque: estoque,
-            preco: preco,
-            produto_variacao: "Variação",
-            tipo_producao: "Terceiros", // backlog Bling 1
-            tipo_do_item: "Mercadoria para Revenda",
-            codigo_pai: data.codigo.toLocaleUpperCase(),
-            url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
-            grupo_de_produtos: "Camisa Master",
-          });
-
-          // Dados Bling
-          dadosVariacoesBling.push({
-            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            formato: "S",
-            gtin: "1234567890123",
-            gtinEmbalagem: "1234567890123",
-            midia: {
-              imagens: {
-                externas: imagensFemininasBling,
-              },
-            },
-            variacao: {
-              nome: `Gênero:Feminino;Tamanho:${item.nome}`,
-              ordem: 1,
-              produtoPai: {
-                cloneInfo: true,
-              },
-            },
-          });
-        });
-      }
-
-      if (data.tamanho_infantil) {
-        relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
-          variacaoDeProduto.push({
-            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            descricao: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
-            estoque: estoque,
-            preco: preco,
-            produto_variacao: "Variação",
-            tipo_producao: "Terceiros", // backlog Bling 1
-            tipo_do_item: "Mercadoria para Revenda",
-            codigo_pai: data.codigo.toLocaleUpperCase(),
-            url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
-            grupo_de_produtos: "Camisa Master",
-          });
-
-          // Dados Bling
-          dadosVariacoesBling.push({
-            codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-            formato: "S",
-            gtin: "1234567890123",
-            gtinEmbalagem: "1234567890123",
-            midia: {
-              imagens: {
-                externas: imagensInfantisBling,
-              },
-            },
-            variacao: {
-              nome: `Gênero:Infantil;Tamanho:${item.nome}`,
-              ordem: 1,
-              produtoPai: {
-                cloneInfo: true,
-              },
-            },
-          });
-        });
-      }
+    getNumeroEans();
+    if(quantidadeEans < 30){
+      alert('Sem número de EANs suficiente 😐. Recarregue os EANs e tente novamente.')
+      setCarregando(false)
+      return
     }
 
-    if (tipoDeProduto === "camiseta") {
-      if (tipoAlgodao === "semalgodao") {
-        if (data.tamanho_masculino) {
-          relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
+    var confirmadoPeloUsuario:any;
+    if(tipoCadastro === "bling"){
+      confirmadoPeloUsuario = confirm("⚠️Atenção! Tenha certeza de que os dados estão corretos. Quer mesmo continuar?")
+    }
+
+    //Continua se o usuário concorda que revisou os dados
+    (!confirmadoPeloUsuario) && setCarregando(false);
+    
+    if(confirmadoPeloUsuario ?? true){
+      setCarregando(true);
+      //Ordena as Imagens em Ordem Ascendente
+      const filesOrdenados = files.toSorted((a, b) => {
+        const numA = parseInt(a.name.split("_")[0], 10);
+        const numB = parseInt(b.name.split("_")[0], 10);
+
+        return numA - numB;
+      });
+
+      //Upload das imagens separando por Gêneros e Cores por tipo de produto
+      for (let i = 0; i < qtdFiles; i++) {
+        const file = filesOrdenados[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const fileData = await fileToBase64(file);
+
+        try {
+          const response = await axios.post(`/api/imgur-upload`, {image: fileData});
+          const urlExternaImagem = response.data.url;
+          
+          // Imagens por Gênero
+          if (file.name.toLowerCase().includes("masc")) {
+            imagensMasculinas.push(urlExternaImagem);
+            imagensMasculinasBling.push({ link: urlExternaImagem });
+          }
+
+          if (file.name.toLowerCase().includes("fem")) {
+            imagensFemininas.push(urlExternaImagem);
+            imagensFemininasBling.push({ link: urlExternaImagem });
+          }
+
+          if (file.name.toLowerCase().includes("inf")) {
+            imagensInfantis.push(urlExternaImagem);
+            imagensInfantisBling.push({ link: urlExternaImagem });
+          }
+
+          // Imagens por Cores
+          if (file.name.toLowerCase().includes("branco")) {
+            imagensCorBranco.push(urlExternaImagem);
+            imagensCorBrancoBling.push({ link: urlExternaImagem });
+          }
+
+          if (file.name.toLowerCase().includes("preto")) {
+            imagensCorPreto.push(urlExternaImagem);
+            imagensCorPretoBling.push({ link: urlExternaImagem });
+          }
+
+          if (file.name.toLowerCase().includes("azul")) {
+            imagensCorAzul.push(urlExternaImagem);
+            imagensCorAzulBling.push({ link: urlExternaImagem });
+          }
+
+          todasAsImagens.push(urlExternaImagem);
+
+          todasAsImagensBling.push({ link: urlExternaImagem });
+        } catch (error) {
+          console.error("Erro no Upload da Imagem: ", error);
+        }
+      }
+
+      // Dados da Planilha
+      var preco = parseFloat(dadosFormulario.preco.replace("R$", "").replace(".", "").replace(",", "."));
+      var estoque = parseInt(dadosFormulario.estoque);
+      const primeiraLinhaDaPlanilha = [
+        {
+          codigo: dadosFormulario.codigo.toLocaleUpperCase(),
+          descricao: dadosFormulario.titulo,
+          estoque: parseFloat("0"),
+          preco: preco,
+          produto_variacao: "Produto",
+          tipo_producao: "Terceiros", // backlog Bling 1
+          tipo_do_item: "Mercadoria para Revenda",
+          codigo_pai: "",
+          marca: nomeLoja,
+          url_imagens_externas: todasAsImagens.join("|"), //backlog clodinary
+          grupo_de_produtos: (tipoDeProduto === "camisa" && "Camisa Master") || ((tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') && "Camiseta Algodão") ||(tipoDeProduto === "camiseta" && "Camiseta Casual") || (tipoAlgodao === "comalgodao" && "Camiseta Algodão"),
+        },
+      ];
+      
+
+      var variacaoDeProduto: any = [...primeiraLinhaDaPlanilha];
+
+      var dadosVariacoesBling: any = [];
+      if (tipoDeProduto === "camisa") {
+        if (dadosFormulario.tamanho_masculino) {
+
+          for(var i=0;i < relacaoDeTamanhos[0].masculino.tamanhos.length;i++){
+            var item = relacaoDeTamanhos[0].masculino.tamanhos[i];
+            var resultaldoEAN = (await axios.get("/api/ean")).data;
+
+            //Sinaliza EAN Como Utilizado
+            if (resultaldoEAN) {
+              await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+            }
+
+            //Variacoes para Planilha
             variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
               descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
               tipo_producao: "Terceiros", // backlog Bling 1
               tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Casual",
+              codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+              url_imagens_externas: imagensMasculinas.join("|"),
+              grupo_de_produtos: "Camisa Master",
+              ean: resultaldoEAN.numero
             });
 
             // Dados Bling
             dadosVariacoesBling.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              marca: nomeLoja,
               formato: "S",
-              gtin: "1234567890123",
-              gtinEmbalagem: "1234567890123",
+              tipo: "P",
+              gtin: resultaldoEAN.numero,
+              gtinEmbalagem: resultaldoEAN.numero,
               midia: {
                 imagens: {
-                  externas: imagensMasculinasBling,
+                  imagensURL: imagensMasculinasBling,
                 },
               },
               variacao: {
                 nome: `Gênero:Masculino;Tamanho:${item.nome}`,
                 ordem: 1,
                 produtoPai: {
-                  cloneInfo: true,
+                  cloneInfo: false,
                 },
               },
             });
-          });
+          }
         }
 
-        if (data.tamanho_feminino) {
-          relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
+        if (dadosFormulario.tamanho_feminino) {
+
+          for(var i=0;i < relacaoDeTamanhos[0].feminino.tamanhos.length;i++){
+            var item = relacaoDeTamanhos[0].feminino.tamanhos[i];
+            var resultaldoEAN = (await axios.get("/api/ean")).data;
+
+            //Sinaliza EAN Como Utilizado
+            if (resultaldoEAN) {
+              await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+            }
+
+            // Dados da Planilha
             variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
               descricao: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
+              tipo_producao: "Terceiros",
               tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
-              marca: "Brk Agro", // backlog Loja
-              url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Casual",
+              codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+              url_imagens_externas: imagensFemininas.join("|"),
+              grupo_de_produtos: "Camisa Master",
+              ean: resultaldoEAN.numero
             });
 
-            // Dados Bling
+            // Dados do Bling
             dadosVariacoesBling.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              preco: preco,
+              situacao: "A",
+              descricaoCurta: "Descrição curta",
+              unidade: "UN",
+              pesoLiquido: 0.25,
+              pesoBruto: 0.25,
+              volumes: 1,
+              itensPorCaixa: 1,
+              tipoProducao: "P",
+              condicao: 0,
+              freteGratis: false,
+              marca: nomeLoja,
+              descricaoComplementar: "Descrição complementar",
+              dimensoes: {
+                largura: 10,
+                altura: 11,
+                profundidade: 16,
+                unidadeMedida: 1,
+              },
+              actionEstoque: "T",
+              tributacao: {
+                origem: 0,
+                ncm: "6101.30.00",
+                cest: "28.038.00",
+                codigoListaServicos: "",
+                spedTipoItem: "",
+                codigoItem: "",
+                valorBaseStRetencao: 0,
+                valorStRetencao: 0,
+                valorICMSSubstituto: 0,
+              },
               formato: "S",
-              gtin: "1234567890123",
-              gtinEmbalagem: "1234567890123",
+              tipo: "P",
+              gtin: resultaldoEAN.numero,
+              gtinEmbalagem: resultaldoEAN.numero,
               midia: {
                 imagens: {
-                  externas: imagensFemininasBling,
+                  imagensURL: imagensFemininasBling,
                 },
               },
               variacao: {
                 nome: `Gênero:Feminino;Tamanho:${item.nome}`,
                 ordem: 1,
                 produtoPai: {
-                  cloneInfo: true,
+                  cloneInfo: false,
                 },
               },
             });
-          });
+          }
         }
 
-        if (data.tamanho_infantil) {
-          relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
+        if (dadosFormulario.tamanho_infantil) {
+
+          for(var i=0;i < relacaoDeTamanhos[0].infantil.tamanhos.length;i++){
+            var item = relacaoDeTamanhos[0].infantil.tamanhos[i];
+            var resultaldoEAN = (await axios.get("/api/ean")).data;
+
+            //Sinaliza EAN Como Utilizado
+            if (resultaldoEAN) {
+              await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+            }
+
             variacaoDeProduto.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              marca: loja,
               descricao: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
               tipo_producao: "Terceiros", // backlog Bling 1
               tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: data.codigo.toLocaleUpperCase(),
+              codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
               url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
-              grupo_de_produtos: "Camiseta Casual",
+              grupo_de_produtos: "Camisa Master",
+              ean: resultaldoEAN.numero
             });
 
             // Dados Bling
             dadosVariacoesBling.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+              marca:nomeLoja,
               formato: "S",
-              gtin: "1234567890123",
-              gtinEmbalagem: "1234567890123",
+              tipo: "P",
+              gtin: resultaldoEAN.numero,
+              gtinEmbalagem: resultaldoEAN.numero,
               midia: {
                 imagens: {
-                  externas: imagensInfantisBling,
+                  imagensURL: imagensInfantisBling,
                 },
               },
               variacao: {
                 nome: `Gênero:Infantil;Tamanho:${item.nome}`,
                 ordem: 1,
                 produtoPai: {
-                  cloneInfo: true,
+                  cloneInfo: false,
                 },
               },
             });
-          });
+          }
         }
       }
 
-      if (tipoAlgodao === "comalgodao") {
-        if (data.cor_preto) {
-          relacaoDeCores[0].preto.tamanhos.map((item) => {
-            if (item.tamanho !== "PP") {
+      if (tipoDeProduto === "camiseta") {
+        if (tipoAlgodao === "semalgodao") {
+          if (dadosFormulario.tamanho_masculino) {
+            relacaoDeTamanhos[0].masculino.tamanhos.map((item) => {
               variacaoDeProduto.push({
-                // codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-                codigo: `${data.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
                 estoque: estoque,
                 preco: preco,
                 produto_variacao: "Variação",
                 tipo_producao: "Terceiros", // backlog Bling 1
                 tipo_do_item: "Mercadoria para Revenda",
-                codigo_pai: data.codigo.toLocaleUpperCase(),
-                url_imagens_externas: imagensCorPreto.join("|"), //backlog clodinary,
-                grupo_de_produtos: "Camiseta Algodão",
-                ncm: '6205.20.00',
+                codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensMasculinas.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Casual",
               });
-            }
 
-            // Dados Bling
-            dadosVariacoesBling.push({
-              codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-              formato: "S",
-              gtin: "1234567890123",
-              gtinEmbalagem: "1234567890123",
-              midia: {
-                imagens: {
-                  externas: imagensCorPretoBling,
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                formato: "S",
+                gtin: "1234567890123",
+                gtinEmbalagem: "1234567890123",
+                midia: {
+                  imagens: {
+                    externas: imagensMasculinasBling,
+                  },
                 },
-              },
-              variacao: {
-                nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
-                ordem: 1,
-                produtoPai: {
-                  cloneInfo: true,
+                variacao: {
+                  nome: `Gênero:Masculino;Tamanho:${item.nome}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: true,
+                  },
                 },
-              },
+              });
             });
-          });
-        }
+          }
 
-        if (data.cor_azul) {
-          relacaoDeCores[0].azul.tamanhos.map((item) => {
-            if (item.tamanho !== "PP") {
+          if (dadosFormulario.tamanho_feminino) {
+            relacaoDeTamanhos[0].feminino.tamanhos.map((item) => {
               variacaoDeProduto.push({
-                // codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-                codigo: `${data.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                descricao: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
                 estoque: estoque,
                 preco: preco,
                 produto_variacao: "Variação",
                 tipo_producao: "Terceiros", // backlog Bling 1
                 tipo_do_item: "Mercadoria para Revenda",
-                codigo_pai: data.codigo.toLocaleUpperCase(),
+                codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
                 marca: "Brk Agro", // backlog Loja
-                url_imagens_externas: imagensCorAzul.join("|"), //backlog clodinary,
-                grupo_de_produtos: "Camiseta Algodão",
-                ncm: '6205.20.00',
+                url_imagens_externas: imagensFemininas.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Casual",
               });
 
               // Dados Bling
               dadosVariacoesBling.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
                 formato: "S",
                 gtin: "1234567890123",
                 gtinEmbalagem: "1234567890123",
                 midia: {
                   imagens: {
-                    externas: imagensCorAzulBling,
+                    externas: imagensFemininasBling,
                   },
                 },
                 variacao: {
-                  nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                  nome: `Gênero:Feminino;Tamanho:${item.nome}`,
                   ordem: 1,
                   produtoPai: {
                     cloneInfo: true,
                   },
                 },
               });
-            }
-          });
-        }
+            });
+          }
 
-        if (data.cor_branco) {
-          relacaoDeCores[0].branco.tamanhos.map((item) => {
-            if (item.tamanho !== "PP") {
+          if (dadosFormulario.tamanho_infantil) {
+            relacaoDeTamanhos[0].infantil.tamanhos.map((item) => {
               variacaoDeProduto.push({
-                // codigo: `${data.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-                codigo: `${data.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
-                descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                descricao: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
                 estoque: estoque,
                 preco: preco,
                 produto_variacao: "Variação",
                 tipo_producao: "Terceiros", // backlog Bling 1
                 tipo_do_item: "Mercadoria para Revenda",
-                codigo_pai: data.codigo.toLocaleUpperCase(),
-                url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
-                grupo_de_produtos: "Camiseta Algodão",
-                ncm: '6205.20.00',
+                codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensInfantis.join("|"), //backlog clodinary,
+                grupo_de_produtos: "Camiseta Casual",
               });
 
               // Dados Bling
               dadosVariacoesBling.push({
-                codigo: `${data.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
                 formato: "S",
                 gtin: "1234567890123",
                 gtinEmbalagem: "1234567890123",
                 midia: {
                   imagens: {
-                    imagensURL: imagensCorBrancoBling,
+                    externas: imagensInfantisBling,
+                  },
+                },
+                variacao: {
+                  nome: `Gênero:Infantil;Tamanho:${item.nome}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: true,
+                  },
+                },
+              });
+            });
+          }
+        }
+
+        if (tipoAlgodao === "comalgodao") {
+          if (dadosFormulario.cor_preto) {
+            relacaoDeCores[0].preto.tamanhos.map((item) => {
+              if (item.tamanho !== "PP") {
+                variacaoDeProduto.push({
+                  // codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                  codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                  descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                  estoque: estoque,
+                  preco: preco,
+                  produto_variacao: "Variação",
+                  tipo_producao: "Terceiros", // backlog Bling 1
+                  tipo_do_item: "Mercadoria para Revenda",
+                  codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+                  url_imagens_externas: imagensCorPreto.join("|"), //backlog clodinary,
+                  grupo_de_produtos: "Camiseta Algodão",
+                  ncm: '6205.20.00',
+                });
+              }
+
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                formato: "S",
+                gtin: "1234567890123",
+                gtinEmbalagem: "1234567890123",
+                midia: {
+                  imagens: {
+                    externas: imagensCorPretoBling,
                   },
                 },
                 variacao: {
@@ -813,80 +832,155 @@ export default function Home() {
                   },
                 },
               });
-            }
-          });
+            });
+          }
+
+          if (dadosFormulario.cor_azul) {
+            relacaoDeCores[0].azul.tamanhos.map((item) => {
+              if (item.tamanho !== "PP") {
+                variacaoDeProduto.push({
+                  // codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                  codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                  descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                  estoque: estoque,
+                  preco: preco,
+                  produto_variacao: "Variação",
+                  tipo_producao: "Terceiros", // backlog Bling 1
+                  tipo_do_item: "Mercadoria para Revenda",
+                  codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+                  marca: "Brk Agro", // backlog Loja
+                  url_imagens_externas: imagensCorAzul.join("|"), //backlog clodinary,
+                  grupo_de_produtos: "Camiseta Algodão",
+                  ncm: '6205.20.00',
+                });
+
+                // Dados Bling
+                dadosVariacoesBling.push({
+                  codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                  formato: "S",
+                  gtin: "1234567890123",
+                  gtinEmbalagem: "1234567890123",
+                  midia: {
+                    imagens: {
+                      externas: imagensCorAzulBling,
+                    },
+                  },
+                  variacao: {
+                    nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                    ordem: 1,
+                    produtoPai: {
+                      cloneInfo: true,
+                    },
+                  },
+                });
+              }
+            });
+          }
+
+          if (dadosFormulario.cor_branco) {
+            relacaoDeCores[0].branco.tamanhos.map((item) => {
+              if (item.tamanho !== "PP") {
+                variacaoDeProduto.push({
+                  // codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                  codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}-PREMIUM-${item.cor_nome.toUpperCase()}-${item.tamanho}`,
+                  descricao: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                  estoque: estoque,
+                  preco: preco,
+                  produto_variacao: "Variação",
+                  tipo_producao: "Terceiros", // backlog Bling 1
+                  tipo_do_item: "Mercadoria para Revenda",
+                  codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+                  url_imagens_externas: imagensCorBranco.join("|"), //backlog clodinary,
+                  grupo_de_produtos: "Camiseta Algodão",
+                  ncm: '6205.20.00',
+                });
+
+                // Dados Bling
+                dadosVariacoesBling.push({
+                  codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}_${item.cor_nome.toUpperCase()}_${item.tamanho}`,
+                  formato: "S",
+                  gtin: "1234567890123",
+                  gtinEmbalagem: "1234567890123",
+                  midia: {
+                    imagens: {
+                      imagensURL: imagensCorBrancoBling,
+                    },
+                  },
+                  variacao: {
+                    nome: `Cor:${item.cor_nome};Tamanho:${item.tamanho}`,
+                    ordem: 1,
+                    produtoPai: {
+                      cloneInfo: true,
+                    },
+                  },
+                });
+              }
+            });
+          }
         }
       }
-    }
 
-    const dadosBling = {
-      nome: data.titulo,
-      codigo: data.codigo.toLocaleUpperCase(),
-      preco: preco,
-      tipo: "P",
-      situacao: "A",
-      formato: "V",
-      descricaoCurta: "Descrição curta",
-      unidade: "UN",
-      pesoLiquido: 0.25,
-      pesoBruto: 0.25,
-      volumes: 1,
-      itensPorCaixa: 1,
-      gtin: "7794051852802",
-      gtinEmbalagem: "7794051852802",
-      tipoProducao: "P",
-      condicao: 0,
-      freteGratis: false,
-      marca: loja === "" ? "" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"),
-      descricaoComplementar: "Descrição complementar",
-      dimensoes: {
-        largura: 10,
-        altura: 11,
-        profundidade: 16,
-        unidadeMedida: 1,
-      },
-      actionEstoque: "T",
-      tributacao: {
-        origem: 0,
-        ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ?? '6205.20.00',
-        cest: "28.038.00",
-        codigoListaServicos: "",
-        spedTipoItem: "",
-        codigoItem: "",
-        valorBaseStRetencao: 0,
-        valorStRetencao: 0,
-        valorICMSSubstituto: 0,
-      },
-      midia: {
-        imagens: {
-          imagensURL: todasAsImagensBling,
+      const dadosBling = {
+        nome: dadosFormulario.titulo,
+        codigo: dadosFormulario.codigo.toLocaleUpperCase(),
+        preco: preco,
+        tipo: "P",
+        situacao: "A",
+        formato: "V",
+        descricaoCurta: "Descrição curta",
+        unidade: "UN",
+        pesoLiquido: 0.25,
+        pesoBruto: 0.25,
+        volumes: 1,
+        itensPorCaixa: 1,
+        gtin: "",
+        gtinEmbalagem: "",
+        tipoProducao: "P",
+        condicao: 0,
+        freteGratis: false,
+        marca: nomeLoja,
+        descricaoComplementar: "Descrição complementar",
+        dimensoes: {
+          largura: 10,
+          altura: 11,
+          profundidade: 16,
+          unidadeMedida: 1,
         },
-      },
-      variacoes: dadosVariacoesBling,
-    };
+        actionEstoque: "T",
+        tributacao: {
+          origem: 0,
+          ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ?? '6205.20.00',
+          cest: "28.038.00",
+          codigoListaServicos: "",
+          spedTipoItem: "",
+          codigoItem: "",
+          valorBaseStRetencao: 0,
+          valorStRetencao: 0,
+          valorICMSSubstituto: 0,
+        },
+        midia: {
+          imagens: {
+            imagensURL: todasAsImagensBling,
+          },
+        },
+        variacoes: dadosVariacoesBling,
+      };
 
-    try {
-      if (tipoCadastro === "planilha") {
-        // console.log("Dados da Planilha:", variacaoDeProduto);
-
-        if (loja === ""){
-          alert("Selecione a loja BRK 😓");
-          return
-        } 
-        if (qtdFiles === 0){
-          alert("Não esqueça as imagens 🖼️");
-          return
+      try {
+        if (tipoCadastro === "planilha") {
+          //console.log("Dados da Planilha:", variacaoDeProduto);
+          geraPlanilha(variacaoDeProduto, dadosFormulario.codigo.toUpperCase());
+        } else if (tipoCadastro === "bling") {
+          console.log("Dados do Bling:", dadosBling);
+          saveProdutos(dadosBling);
         }
-
-        geraPlanilha(variacaoDeProduto, data.codigo.toUpperCase());
-      } else if (tipoCadastro === "bling") {
-        saveProdutos(dadosBling);
+      } catch (error) {
+        alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
+        setCarregando(false);
+      } finally {
+        setCarregando(false);
       }
-    } catch (error) {
-      alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
-      setCarregando(false);
-    } finally {
-      setCarregando(false);
+
     }
   };
 
@@ -898,7 +992,7 @@ export default function Home() {
       Código: row.codigo, // Dinâmico
       Descrição: row.descricao, // Dinâmico
       Unidade: "UN",
-      NCM: row.ncm,
+      NCM: (tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00',
       Origem: parseFloat("0"),
       Preço: row.preco, // Dinâmico
       "Valor IPI fixo": parseFloat("0"),
@@ -913,8 +1007,8 @@ export default function Home() {
       "Estoque mínimo": parseFloat("0"),
       "Peso líquido (Kg)": "0,250",
       "Peso bruto (Kg)": "0,250",
-      "GTIN/EAN": "", // Dinâmico
-      "GTIN/EAN da Embalagem": "", // Dinâmico
+      "GTIN/EAN": row.ean, // Dinâmico
+      "GTIN/EAN da Embalagem": row.ean, // Dinâmico
       "Largura do produto": parseFloat("10"),
       "Altura do Produto": parseFloat("11"),
       "Profundidade do produto": parseFloat("16"),
@@ -932,7 +1026,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai, // Dinâmico
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos, // Dinâmico
-      Marca: loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), // Dinâmico row.marca
+      Marca: loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), 
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": "",
@@ -993,7 +1087,6 @@ export default function Home() {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = utils.sheet_to_json(worksheet, { header: 1 });
 
-      // Extract data from column C starting from row 2
       const columnCData = jsonData.slice(1).map((row: any) => row[1]);
 
       setData(columnCData);
@@ -1005,53 +1098,47 @@ export default function Home() {
   };
 
   async function criaEan(dataEan: any) {
+    setCarregando(true)
+    var dataEans = [];
+    for (let i = 0; i <= dataEan.length; i++) {
+      dataEans.push(dataEan[i])
+    }
+
     try {
-      for (let i = 0; i <= dataEan.length; i++) {
-        await axios.post("/api/ean", { numero: dataEan[i].toString() });
-      }
+      await axios.post("/api/ean", dataEans);
+      getNumeroEans();
     } catch (error) {
       console.log("Ops! Houve um problema: ", error);
     } finally {
-      // alert("Importação Finalizada! 🎉");
-    }
-
-    // console.log(retornoCriaEan);
-  }
-
-  async function capturaEan() {
-    try {
-      await axios.get("/api/ean").then((res) => {
-        return JSON.stringify({
-          id: res.data.data.id,
-          numero: res.data.data.numero,
-        });
-      });
-    } catch (error) {
-      console.log("Ops! Houve um problema: ", error);
-    } finally {
-      // alert("Importação Finalizada! 🎉");
-    }
-  }
-
-  function marcaEanUtilizado(idEan: String) {
-    try {
-      return axios.put("/api/ean", { idEan });
-    } catch (error) {
-      console.log("Ops, houve um problema 😭: ", error);
+      alert("Importação Finalizada! 🎉");
+      setCarregando(false)
     }
   }
 
   return (
     <>
       <div className="relative flex flex-col min-h-screen h-full w-full items-center justify-center gap-4 py-10 overflow-y-clip">
+        {/* Inteface de Carregamento */}
+        {carregando && 
+          <>
+            <div className="fixed w-screen h-screen top-0 left-0 z-20 bg-zinc-100/10 backdrop-blur-[1px] blur-[1px]"></div>
+            <div className="fixed top-1/3 left-1/3 w-[520px] z-30 bg-zinc-800 p-20 mt-2 rounded-md">
+              <span className="flex justify-center items-center text-zinc-200">
+                <CircleNotch size={50} className="animate-spin mr-4 text-zinc-200" />
+                Processando...
+              </span>
+            </div>
+          </>
+        }       
+
         {/* HUD do EAN/GTIN */}
-        <div className="fixed flex flex-col top-0 right-0 p-5">
+        <div className="fixed flex flex-col top-0 right-0 p-5" title="Quantidade de EAN's Restantes. Clique aqui para importar mais.">
           <label
-            className="relative flex flex-col justify-center items-center text-center rounded-full text-green-300 border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]"
+            className={`relative flex flex-col justify-center items-center text-center rounded-lg ${quantidadeEans < 2200 ? 'text-red-300' : 'text-green-300'} border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]`}
             htmlFor="upean"
           >
             {/* <UploadSimple className="font-bold" size={36} /> */}
-            <span className="flex items-center justify-center h-4 w-4">45</span>
+            <span className="flex items-center justify-center p-1">{quantidadeEans}</span>
             <input className="hidden" id="upean" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
           </label>
         </div>
@@ -1124,7 +1211,7 @@ export default function Home() {
           <button
             onClick={() => setTipoDeProduto("camiseta")}
             type="button"
-            className={`flex flex-col gap-1 items-center justify-center py-4 px-1 text-sm ${
+            className={`hidden flex-col gap-1 items-center justify-center py-4 px-1 text-sm ${
               tipoDeProduto === "camiseta" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
@@ -1134,7 +1221,7 @@ export default function Home() {
           <button
             onClick={() => setTipoDeProduto("bone")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-4 px-1 text-sm ${
+            className={`hidden flex-col gap-2 items-center justify-center py-4 px-1 text-sm ${
               tipoDeProduto === "bone" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
@@ -1144,7 +1231,7 @@ export default function Home() {
           <button
             onClick={() => setTipoDeProduto("cortavento")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-4 px-1 text-sm rounded-bl-lg ${
+            className={`hidden flex-col gap-2 items-center justify-center py-4 px-1 text-sm rounded-bl-lg ${
               tipoDeProduto === "cortavento" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             } opacity-15 pointer-events-none`}
           >
@@ -1212,7 +1299,7 @@ export default function Home() {
                       placeholder="Ex: Camisa Agro Brk..."
                       required
                       {...register("titulo")}
-                      onBlur={(e) => geraSEO(e.target.value)}
+                      // onBlur={(e) => geraSEO(e.target.value)}
                     />
                   </label>
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
@@ -1229,14 +1316,6 @@ export default function Home() {
                   </label>
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="preco">
                     Preço
-                    {/* <input
-                      className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                      id="preco"
-                      type="text"
-                      placeholder={`${precos.camisa}`}
-                      required
-                      {...register("preco")}
-                    /> */}
                     <CurrencyInput
                       className="max-w-32 bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                       id="preco"
@@ -1268,7 +1347,7 @@ export default function Home() {
                 </div>
 
                 {/* SEO */}
-                <div className="flex flex-col w-full">
+                <div className="hidden flex-col w-full">
                   <fieldset className="border border-slate-200/10 p-10">
                     <legend className="text-slate-200 font-bold text-lg px-4">SEO</legend>
 
@@ -1368,7 +1447,7 @@ export default function Home() {
                       placeholder="Ex: Camiseta Agro Brk..."
                       required
                       {...register("titulo")}
-                      onBlur={(e) => geraSEO(e.target.value)}
+                      // onBlur={(e) => geraSEO(e.target.value)}
                     />
                   </label>
                   <label className="flex flex-col gap-2 text-zinc-200" htmlFor="estoque">
@@ -1638,7 +1717,7 @@ export default function Home() {
                     setTipoCadastro("bling");
                   }}
                   type="submit"
-                  className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                  className={`flex py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
                 >
                   {carregando ? (
                     <span className="flex justify-center items-center">
@@ -1647,7 +1726,7 @@ export default function Home() {
                     </span>
                   ) : (
                     <span className="flex justify-center items-center gap-2">
-                      <ListPlus size={32} /> Cadastrar
+                      <ListPlus size={32} /> Cadastrar no Bling
                     </span>
                   )}
                 </button>
