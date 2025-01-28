@@ -293,7 +293,7 @@ export default function Home() {
 
   async function getNumeroEans() {
     const dataNumeroEans = await axios.get('api/ean?quantidadeeans=true');
-    setQuantidadeEans(dataNumeroEans.data.count)
+    setQuantidadeEans(dataNumeroEans ? dataNumeroEans.data.count : '0')
   }
 
   //Captura e Armazena o Token do Bling
