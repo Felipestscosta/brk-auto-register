@@ -9,8 +9,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
 import Cloudflare from 'cloudflare'
-import { ConnectorListResponsesSinglePage } from "cloudflare/resources/magic-transit/connectors.mjs";
-// import ean from "@/pages/api/ean";
 
 type esquemaDeDadosFormulario = {
   codigo: string;
@@ -31,6 +29,14 @@ type esquemaDeDadosFormulario = {
   metadescription: string;
   metakeywords: string;
 };
+
+const descricaoCamisaPorLoja = 
+  {
+      agro: `<h1 style=margin-bottom:2rem>[titulo-produto]</h1><title>Camisas BRK Agro - Inovação, Estilo e Performance</title></head><body><h2>Inovação, Estilo e Performance com as Camisas BRK Agro</h2><p>As Camisas BRK Agro representam uma verdadeira inovação no mercado, combinando qualidade, estilo e alta performance em um único produto. Confeccionadas com o tecido exclusivo <strong>XTech Pro®</strong>, essas camisas oferecem conforto superior, proteção solar <strong>UV50+</strong>, além de serem antiodor e antibacterianas, garantindo frescor e proteção durante todo o dia.</p><h2>Benefícios das Camisas BRK Agro:</h2><ul><li><strong>Cores Vibrantes e Durabilidade:</strong> Nossas camisas mantêm suas cores intensas por muito mais tempo, sem desbotar, mesmo com várias lavagens e exposição ao sol.</li><li><strong>Praticidade:</strong> O tecido de secagem ultra rápida e que não precisa passar facilita a sua rotina, ideal para o dia a dia no campo ou em atividades ao ar livre.</li><li><strong>Costura Reforçada:</strong> A costura com tecnologia de ponto cadeia proporciona durabilidade e resistência, garantindo que a camisa suporte até os desafios mais intensos do trabalho agro.</li></ul><h2>Cuidados Essenciais para Conservar a Qualidade da Sua Camisa BRK Agro:</h2><ul><li>Lave em água fria, preferencialmente com detergente líquido.</li><li>Seque à sombra para manter a durabilidade do tecido e as propriedades de proteção UV.</li><li>Evite utilizar máquinas de secar e não faça lavagem a seco.</li><li>Não passe a camisa com ferro elétrico, pois o tecido <strong>XTech Pro®</strong> não requer isso.</li></ul><h2>Diferenciais Exclusivos das Camisas BRK Agro:</h2><ul><li><strong>Tecido exclusivo XTech Pro®</strong> com tecnologia de última geração.</li><li><strong>Proteção solar UV50+</strong>, ideal para longas exposições ao sol durante o trabalho no campo.</li><li><strong>Propriedades antiodor e antibacterianas</strong>, oferecendo frescor e higiene prolongados.</li><li><strong>Garantia de 1 ano e política de troca fácil</strong> para sua maior tranquilidade.</li><li><strong>Estampas exclusivas</strong> que unem estilo e autenticidade ao universo agro.</li></ul><p>As Camisas BRK Agro são a escolha perfeita para quem busca resistência, proteção e estilo no campo ou nas atividades ao ar livre. Encontre a sua na BRK Agro e sinta a diferença de vestir inovação e tecnologia de ponta.</p></body></html><h1 style=margin-bottom:2rem>[titulo-produto]</h1><title>Camisas BRK Agro - Inovação, Estilo e Performance</title></head><body><h2>Inovação, Estilo e Performance com as Camisas BRK Agro</h2><p>As Camisas BRK Agro representam uma verdadeira inovação no mercado, combinando qualidade, estilo e alta performance em um único produto. Confeccionadas com o tecido exclusivo <strong>XTech Pro®</strong>, essas camisas oferecem conforto superior, proteção solar <strong>UV50+</strong>, além de serem antiodor e antibacterianas, garantindo frescor e proteção durante todo o dia.</p><h2>Benefícios das Camisas BRK Agro:</h2><ul><li><strong>Cores Vibrantes e Durabilidade:</strong> Nossas camisas mantêm suas cores intensas por muito mais tempo, sem desbotar, mesmo com várias lavagens e exposição ao sol.</li><li><strong>Praticidade:</strong> O tecido de secagem ultra rápida e que não precisa passar facilita a sua rotina, ideal para o dia a dia no campo ou em atividades ao ar livre.</li><li><strong>Costura Reforçada:</strong> A costura com tecnologia de ponto cadeia proporciona durabilidade e resistência, garantindo que a camisa suporte até os desafios mais intensos do trabalho agro.</li></ul><h2>Cuidados Essenciais para Conservar a Qualidade da Sua Camisa BRK Agro:</h2><ul><li>Lave em água fria, preferencialmente com detergente líquido.</li><li>Seque à sombra para manter a durabilidade do tecido e as propriedades de proteção UV.</li><li>Evite utilizar máquinas de secar e não faça lavagem a seco.</li><li>Não passe a camisa com ferro elétrico, pois o tecido <strong>XTech Pro®</strong> não requer isso.</li></ul><h2>Diferenciais Exclusivos das Camisas BRK Agro:</h2><ul><li><strong>Tecido exclusivo XTech Pro®</strong> com tecnologia de última geração.</li><li><strong>Proteção solar UV50+</strong>, ideal para longas exposições ao sol durante o trabalho no campo.</li><li><strong>Propriedades antiodor e antibacterianas</strong>, oferecendo frescor e higiene prolongados.</li><li><strong>Garantia de 1 ano e política de troca fácil</strong> para sua maior tranquilidade.</li><li><strong>Estampas exclusivas</strong> que unem estilo e autenticidade ao universo agro.</li></ul><p>As Camisas BRK Agro são a escolha perfeita para quem busca resistência, proteção e estilo no campo ou nas atividades ao ar livre. Encontre a sua na BRK Agro e sinta a diferença de vestir inovação e tecnologia de ponta.</p></body></html>`,
+      fishing: `<h1 style=margin-bottom:2rem>[titulo-produto]</h1><title>Camisas Brk Fishing</title></head><body><h3>Inovação, Estilo e Performance com as Camisas Brk Fishing</h3><p>As Camisas Brk Fishing são uma revolução no vestuário de pesca, combinando qualidade, estilo e desempenho em uma única peça. Desenvolvidas com o tecido exclusivo <strong>XTech Pro®</strong>, essas camisas proporcionam máximo conforto, proteção solar <strong>UV50+</strong>, além de propriedades antiodor e antibacterianas, ideais para quem busca proteção e durabilidade durante suas aventuras de pesca.</p><h3>Benefícios das Camisas Brk Fishing:</h3><ul><li><strong>Cores Vibrantes e Durabilidade:</strong> As estampas exclusivas mantêm suas cores intensas por muito mais tempo, sem desbotar, mesmo após várias lavagens.</li><li><strong>Praticidade para o Dia a Dia de Pescadores:</strong> Não precisa passar, o que facilita sua rotina. Além disso, o tecido de secagem ultra rápida é ideal para longas jornadas de pesca, tanto no rio quanto no mar.</li><li><strong>Costura Reforçada:</strong> As camisas Brk Fishing contam com costura reforçada com a tecnologia "ponto cadeia", garantindo resistência em qualquer situação.</li></ul><h3>Cuidados com sua Camisa Brk Fishing:</h2><ul><li>Lave em água fria utilizando detergente líquido.</li><li>Seque à sombra para garantir a durabilidade do tecido e das estampas.</li><li>Evite usar máquinas de secar ou lavagem a seco.</li><li>Não passe com ferro elétrico para preservar o tecido tecnológico.</li></ul><h3>Diferenciais Exclusivos:</h2><ul><li><strong>Tecido XTech Pro® Exclusivo:</strong> Tecnologia de alta performance, desenvolvida para resistir aos desafios do ambiente de pesca.</li><li><strong>Proteção Solar UV50+:</strong> Ideal para proteger a pele dos raios solares durante as atividades ao ar livre.</li><li><strong>Antiodor e Antibacteriano:</strong> Propriedades que garantem frescor e higiene, mesmo nas longas jornadas de pesca.</li><li><strong>Estampas Exclusivas Brk Fishing:</strong> Designs criados para refletir a paixão pela pesca e pelo estilo de vida ao ar livre.</li><li><strong>Garantia de 1 ano e Troca Fácil:</strong> Segurança e facilidade no processo de compra.</li></ul><p>Descubra a verdadeira inovação em vestuário de pesca com as camisas Brk Fishing, disponíveis exclusivamente na <strong>Brk Fishing</strong>. Esteja preparado para enfrentar as águas com estilo, conforto e proteção incomparáveis!</p></body></html>`,
+      motors: `<h1 style=margin-bottom:2rem>[titulo-produto]</h1><h3>Inovação, Estilo e Performance com as Camisas BRK Motors<p>As <strong>Camisas BRK Motors</strong> trazem uma verdadeira revolução ao unir <strong>qualidade</strong>, <strong>estilo</strong> e <strong>alta performance</strong> em um único produto. Confeccionadas com o tecido exclusivo <strong>XTech Pro®</strong>, essas camisas proporcionam conforto incomparável e oferecem proteção solar <strong>UV50+</strong>, além de serem <strong>antiodor</strong> e <strong>antibacterianas</strong>, garantindo frescor durante todo o dia.</p><h3>Benefícios das Camisas BRK Motors:</h3><ul><li><strong>Cores Vibrantes e Durabilidade:</strong> Nossas camisas mantêm suas cores vivas por muito mais tempo, sem desbotar, mesmo após várias lavagens.</li><li><strong>Praticidade:</strong> Não precisa passar, o que torna o dia a dia mais fácil. O tecido possui secagem ultra rápida, perfeito para quem está sempre em movimento.</li><li><strong>Costura Reforçada:</strong> Alta resistência para enfrentar qualquer aventura sobre duas rodas.</li></ul><h3>Cuidados para Conservar Sua Camisa BRK Motors:</h3><p>Para garantir a durabilidade e a manutenção das propriedades tecnológicas das camisas BRK, siga estas recomendações:</p><ul><li>Lave à mão ou em máquina com água fria e detergente líquido.</li><li>Seque à sombra para manter a qualidade do tecido e suas propriedades de proteção UV.</li><li>Não utilize máquina de secar ou lavagem a seco.</li><li>Não passe com ferro elétrico para preservar o tecido especial.</li></ul><h3>Diferenciais Exclusivos:</h3><ul><li>Tecido exclusivo <strong>XTech Pro®</strong> com tecnologia de ponta.</li><li>Proteção solar <strong>UV50+</strong> para maior segurança sob o sol.</li><li>Propriedades <strong>antiodor</strong> e <strong>antibacterianas</strong>.</li><li>Estampas exclusivas que unem estilo e personalidade.</li><li>Garantia de 1 ano e política de troca fácil.</li></ul><p>Com as <strong>Camisas BRK Motors</strong>, você está pronto para conquistar as estradas com estilo, proteção e conforto. Encontre a sua na <strong>BRK Motors</strong> e descubra a verdadeira inovação em vestuário para motociclistas.</p></h3>`
+  };
+
 
 const relacaoDeTamanhos = [
   {
@@ -361,7 +367,13 @@ export default function Home() {
   const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (dadosFormulario) => {
     setCarregando(true);
 
-    var nomeLoja = loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors");
+    var nomeLoja = loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") 
+    || (loja === "fishing" && "Brk Fishing") 
+    || (loja === "motors" && "Brk Motors");
+
+    var descricaoProduto = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",dadosFormulario.titulo)
+    || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",dadosFormulario.titulo)
+    || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",dadosFormulario.titulo)
 
     //Imagens Bling
     let todasAsImagensBling = [];
@@ -399,7 +411,7 @@ export default function Home() {
 
     getNumeroEans();
     if(quantidadeEans < 30){
-      alert('Sem número de EANs suficiente 😐. Recarregue os EANs e tente novamente.')
+      alert('Sem número de EANs suficiente 😐. Recarregue os EANs, clicando na quantidade.')
       setCarregando(false)
       return
     }
@@ -480,6 +492,8 @@ export default function Home() {
         {
           codigo: dadosFormulario.codigo.toLocaleUpperCase(),
           descricao: dadosFormulario.titulo,
+          descricao_complementar: descricaoProduto,
+          descricao_curta: descricaoProduto,
           estoque: parseFloat("0"),
           preco: preco,
           produto_variacao: "Produto",
@@ -511,7 +525,7 @@ export default function Home() {
             //Variacoes para Planilha
             variacaoDeProduto.push({
               codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Gênero:Masculino;Tamanho:${item.nome}`,
+              descricao: `Gênero:Masculino;Tamanho:${item.nome}`, //Título
               estoque: estoque,
               preco: preco,
               produto_variacao: "Variação",
@@ -529,7 +543,7 @@ export default function Home() {
               marca: nomeLoja,
               preco: preco,
               situacao: "A",
-              descricaoCurta: "Descrição curta",
+              descricaoCurta: descricaoProduto,
               unidade: "UN",
               pesoLiquido: 0.25,
               pesoBruto: 0.25,
@@ -538,7 +552,7 @@ export default function Home() {
               tipoProducao: "P",
               condicao: 0,
               freteGratis: false,
-              descricaoComplementar: "Descrição complementar",
+              descricaoComplementar: descricaoProduto,
               dimensoes: {
                 largura: 10,
                 altura: 11,
@@ -987,7 +1001,7 @@ export default function Home() {
         tipo: "P",
         situacao: "A",
         formato: "V",
-        descricaoCurta: "Descrição curta",
+        descricaoCurta: descricaoProduto,
         unidade: "UN",
         pesoLiquido: 0.25,
         pesoBruto: 0.25,
@@ -999,7 +1013,7 @@ export default function Home() {
         condicao: 0,
         freteGratis: false,
         marca: nomeLoja,
-        descricaoComplementar: "Descrição complementar",
+        descricaoComplementar: descricaoProduto,
         dimensoes: {
           largura: 10,
           altura: 11,
@@ -1009,7 +1023,7 @@ export default function Home() {
         actionEstoque: "T",
         tributacao: {
           origem: 0,
-          ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ?? '6205.20.00',
+          ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00',
           cest: "28.038.00",
           codigoListaServicos: "",
           spedTipoItem: "",
@@ -1031,7 +1045,7 @@ export default function Home() {
           //console.log("Dados da Planilha:", variacaoDeProduto);
           geraPlanilha(variacaoDeProduto, dadosFormulario.codigo.toUpperCase());
         } else if (tipoCadastro === "bling") {
-          console.log("Dados do Bling:", dadosBling);
+          //console.log("Dados do Bling:", dadosBling);
           saveProdutos(dadosBling);
         }
       } catch (error) {
@@ -1074,7 +1088,7 @@ export default function Home() {
       "Profundidade do produto": parseFloat("16"),
       "Data Validade": "",
       "Descrição do Produto no Fornecedor": "",
-      "Descrição Complementar": "",
+      "Descrição Complementar": row.descricao_complementar,
       "Itens p/ caixa": parseFloat("1"),
       "Produto Variação": row.produto_variacao, // Dinâmico
       "Tipo Produção": row.tipo_producao, // Dinâmico
@@ -1089,7 +1103,7 @@ export default function Home() {
       Marca: loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), 
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
-      "Descrição Curta": "",
+      "Descrição Curta": row.descricao_curta,
       "Cross-Docking": "",
       "URL Imagens Externas": row.url_imagens_externas, // Dinâmico
       "Link Externo": "",
@@ -1194,7 +1208,7 @@ export default function Home() {
         {/* HUD do EAN/GTIN */}
         <div className="fixed flex flex-col top-0 right-0 p-5" title="Quantidade de EAN's Restantes. Clique aqui para importar mais.">
           <label
-            className={`relative flex flex-col justify-center items-center text-center rounded-lg ${quantidadeEans < 2200 ? 'text-red-300' : 'text-green-300'} border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]`}
+            className={`relative flex flex-col justify-center items-center text-center rounded-lg ${quantidadeEans < 30 ? 'text-red-300' : 'text-green-300'} border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]`}
             htmlFor="upean"
           >
             {/* <UploadSimple className="font-bold" size={36} /> */}
