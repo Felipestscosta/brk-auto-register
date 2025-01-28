@@ -1,20 +1,10 @@
-import { PrismaClient } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import mysql from 'mysql2/promise'
 import { Pool } from 'pg'
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
-  const prisma = new PrismaClient();
   const tipoMetodo = req.method;
 
-  async function DatabaseSQL(){
-    // const connectionMysql = await mysql.createPool({
-    //   host: process.env.NEXT_PUBLIC_HOST,
-    //   user: process.env.NEXT_PUBLIC_USER,
-    //   database: process.env.NEXT_PUBLIC_DATABASE,
-    //   password: process.env.NEXT_PUBLIC_PASSWORD
-    // })
-    
+  async function DatabaseSQL(){    
     const connectionPostgre = await new Pool({
       host: process.env.NEXT_PUBLIC_PG_HOST,
       user: process.env.NEXT_PUBLIC_PG_USER,
