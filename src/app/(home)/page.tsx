@@ -324,21 +324,21 @@ export default function Home() {
     const variacoes = retornoCadastroProduto.data.variacoes;
     const quantidadeVariacoes = Object.keys(variacoes).length;
 
-    // if (quantidadeVariacoes !== 0) {
-    //   for (let i = 0; i < quantidadeVariacoes; i++) {
-    //     const variacao = variacoes[i];
-    //     try {
-    //       if (!variacao.nomeVariacao.includes("G3") && !variacao.nomeVariacao.includes("G4")) {
-    //         await axios.post(`/api/bling-estoques?token=${token}`, { id: variacao.id });
-    //       }
-    //     } catch (error) {
-    //       console.error(`Erro na requisição para variação ${variacao.id}:`, error);
-    //     }
-    //     await new Promise((resolve) => setTimeout(resolve, 0));
-    //   }
-    // } else {
-    //   axios.post(`/api/bling-estoques?token=${token}`, { id: retornoCadastroProduto.idProduto });
-    // }
+    if (quantidadeVariacoes !== 0) {
+      for (let i = 0; i < quantidadeVariacoes; i++) {
+        const variacao = variacoes[i];
+        try {
+          if (!variacao.nomeVariacao.includes("G3") && !variacao.nomeVariacao.includes("G4")) {
+            await axios.post(`/api/bling-estoques?token=${token}`, { id: variacao.id });
+          }
+        } catch (error) {
+          console.error(`Erro na requisição para variação ${variacao.id}:`, error);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    } else {
+      axios.post(`/api/bling-estoques?token=${token}`, { id: retornoCadastroProduto.idProduto });
+    }
 
     if (retornoCadastroProduto.status === 201) {
       alert("Produto Cadastrado com sucesso 🚀");
