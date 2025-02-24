@@ -376,7 +376,7 @@ export default function Home() {
     || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",dadosFormulario.titulo)
 
     //Imagens Bling
-    let todasAsImagensBling = [];
+    let todasAsImagensBling:any = [];
     var imagensMasculinasBling: any = [];
     var imagensFemininasBling: any = [];
     var imagensInfantisBling: any = [];
@@ -442,49 +442,36 @@ export default function Home() {
         const fileData = await fileToBase64(file);
 
         try {
-          //Upload via Imgur
-          // const response = await axios.post(`/api/imgur-upload`, {image: fileData});
-          //const urlDaImagem = response.data.url;
-          
-          // Upload via AWS S3
           const response:any = await axios.post("/api/upload-image-s3",formData);
           const urlDaImagem = response.data.file.location;
-          
+  
           // Imagens por Gênero
           if (file.name.toLowerCase().includes("masc")) {
             imagensMasculinas.push(urlDaImagem);
-            imagensMasculinasBling.push({ link: urlDaImagem });
           }
-
+  
           if (file.name.toLowerCase().includes("fem")) {
             imagensFemininas.push(urlDaImagem);
-            imagensFemininasBling.push({ link: urlDaImagem });
           }
-
+  
           if (file.name.toLowerCase().includes("inf")) {
             imagensInfantis.push(urlDaImagem);
-            imagensInfantisBling.push({ link: urlDaImagem });
           }
-
+  
           // Imagens por Cores
           if (file.name.toLowerCase().includes("branco")) {
             imagensCorBranco.push(urlDaImagem);
-            imagensCorBrancoBling.push({ link: urlDaImagem });
           }
-
+  
           if (file.name.toLowerCase().includes("preto")) {
             imagensCorPreto.push(urlDaImagem);
-            imagensCorPretoBling.push({ link: urlDaImagem });
           }
-
+  
           if (file.name.toLowerCase().includes("azul")) {
             imagensCorAzul.push(urlDaImagem);
-            imagensCorAzulBling.push({ link: urlDaImagem });
           }
-
+  
           todasAsImagens.push(urlDaImagem);
-
-          todasAsImagensBling.push({ link: urlDaImagem });
         } catch (error) {
           console.error("Erro no Upload da Imagem: ", error);
         }
