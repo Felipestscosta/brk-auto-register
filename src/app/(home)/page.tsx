@@ -442,44 +442,49 @@ export default function Home() {
         const fileData = await fileToBase64(file);
 
         try {
-          const response = await axios.post(`/api/imgur-upload`, {image: fileData});
-          const urlExternaImagem = response.data.url;
+          //Upload via Imgur
+          // const response = await axios.post(`/api/imgur-upload`, {image: fileData});
+          //const urlDaImagem = response.data.url;
+          
+          // Upload via AWS S3
+          const response:any = await axios.post("/api/upload-image-s3",formData);
+          const urlDaImagem = response.data.file.location;
           
           // Imagens por Gênero
           if (file.name.toLowerCase().includes("masc")) {
-            imagensMasculinas.push(urlExternaImagem);
-            imagensMasculinasBling.push({ link: urlExternaImagem });
+            imagensMasculinas.push(urlDaImagem);
+            imagensMasculinasBling.push({ link: urlDaImagem });
           }
 
           if (file.name.toLowerCase().includes("fem")) {
-            imagensFemininas.push(urlExternaImagem);
-            imagensFemininasBling.push({ link: urlExternaImagem });
+            imagensFemininas.push(urlDaImagem);
+            imagensFemininasBling.push({ link: urlDaImagem });
           }
 
           if (file.name.toLowerCase().includes("inf")) {
-            imagensInfantis.push(urlExternaImagem);
-            imagensInfantisBling.push({ link: urlExternaImagem });
+            imagensInfantis.push(urlDaImagem);
+            imagensInfantisBling.push({ link: urlDaImagem });
           }
 
           // Imagens por Cores
           if (file.name.toLowerCase().includes("branco")) {
-            imagensCorBranco.push(urlExternaImagem);
-            imagensCorBrancoBling.push({ link: urlExternaImagem });
+            imagensCorBranco.push(urlDaImagem);
+            imagensCorBrancoBling.push({ link: urlDaImagem });
           }
 
           if (file.name.toLowerCase().includes("preto")) {
-            imagensCorPreto.push(urlExternaImagem);
-            imagensCorPretoBling.push({ link: urlExternaImagem });
+            imagensCorPreto.push(urlDaImagem);
+            imagensCorPretoBling.push({ link: urlDaImagem });
           }
 
           if (file.name.toLowerCase().includes("azul")) {
-            imagensCorAzul.push(urlExternaImagem);
-            imagensCorAzulBling.push({ link: urlExternaImagem });
+            imagensCorAzul.push(urlDaImagem);
+            imagensCorAzulBling.push({ link: urlDaImagem });
           }
 
-          todasAsImagens.push(urlExternaImagem);
+          todasAsImagens.push(urlDaImagem);
 
-          todasAsImagensBling.push({ link: urlExternaImagem });
+          todasAsImagensBling.push({ link: urlDaImagem });
         } catch (error) {
           console.error("Erro no Upload da Imagem: ", error);
         }
