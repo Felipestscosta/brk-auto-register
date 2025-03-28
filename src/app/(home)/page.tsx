@@ -440,9 +440,9 @@ export default function Home() {
         formData.append("file", file);
 
         try {
-          // const response:any = await axios.post("/api/upload-image-s3",formData);
-          // const urlDaImagem = response.data.file.location;
-          const urlDaImagem = "";
+          const response:any = await axios.post("/api/upload-image-s3",formData);
+          const urlDaImagem = response.data.file.location;
+          // const urlDaImagem = "";
   
           // Imagens por Gênero
           if (file.name.toLowerCase().includes("masc")) {
