@@ -553,7 +553,7 @@ export default function Home() {
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: "",
                 marca: nomeLoja,
-                url_imagens_externas: todasAsImagens.join("|"),
+                url_imagens_externas: imagensMasculinas.join("|"),
                 grupo_de_produtos: "Camisa Master",
               },
             ];
@@ -677,7 +677,7 @@ export default function Home() {
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: "",
                 marca: nomeLoja,
-                url_imagens_externas: todasAsImagens.join("|"),
+                url_imagens_externas: imagensFemininas.join("|"),
                 grupo_de_produtos: "Camisa Master",
               },
             ];
@@ -801,7 +801,7 @@ export default function Home() {
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: "",
                 marca: nomeLoja,
-                url_imagens_externas: todasAsImagens.join("|"),
+                url_imagens_externas: imagensInfantis.join("|"),
                 grupo_de_produtos: "Camisa Master",
               },
             ];
