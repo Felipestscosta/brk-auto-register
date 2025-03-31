@@ -1,6 +1,6 @@
 "use client";
 import { Barn, BaseballCap, CircleNotch, Empty, FileArrowDown, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, Tree, TShirt, UploadSimple } from "@phosphor-icons/react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { SubmitHandler, useForm, useFieldArray } from "react-hook-form";
 import CurrencyInput from "react-currency-input-field";
 
 import { writeFileXLSX, utils, readFile } from "xlsx";
@@ -243,20 +243,6 @@ const client = new Cloudflare({
 
 export default function Home() {
   const [files, setFiles] = useState<any[]>([]);
-  const { getRootProps } = useDropzone({
-    accept: {
-      "image/*": [".png", ".jpg", ".jpeg", ".webp"],
-    },
-    onDrop: (acceptedFiles) => {
-      setFiles(
-        acceptedFiles.map((file) =>
-          Object.assign(file, {
-            preview: URL.createObjectURL(file),
-          })
-        )
-      );
-    },
-  });
   const [quantidadeEans, setQuantidadeEans] = useState(0);
   const [informacoesSeo, setInformacoesSeo] = useState(["", "", ""]);
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
@@ -266,7 +252,7 @@ export default function Home() {
   const [usaEan, setUsaEan] = useState(false);
   const [loja, setLoja] = useState("");
   const [data, setData] = useState<any[]>([]);
-  const [formInstances, setFormInstances] = useState<number[]>([0]);
+  const [titulos, setTitulos] = useState<string[]>([]);
 
   //Integração IA para Geração de SEO
   function geraSEO(tituloProduto: any) {
@@ -360,17 +346,34 @@ export default function Home() {
   }
 
   // Função para adicionar novo grupo de formulário
-  const addFormInstance = () =>{
-    setFormInstances(prev => [...prev, prev.length])
+  const addFormInstance = () => {
+    append({
+      codigo: "",
+      titulo: "",
+      estoque: "",
+      preco: "",
+      imagens: null,
+      tamanho_masculino: true,
+      tamanho_feminino: true,
+      tamanho_infantil: true,
+      cor_branco: "",
+      cor_preto: "",
+      cor_azul: "",
+      metatitle: "",
+      metadescription: "",
+      metakeywords: ""
+    });
+    setTitulos(prev => [...prev, ""]);
   }
 
   // Função para remover grupo de formulário
   const removeFormInstance = (indexToRemove: number) => {
-    if (formInstances.length === 1) {
+    if (fields.length === 1) {
       alert("Não é possível remover o último formulário!");
       return;
     }
-    setFormInstances(prev => prev.filter((_, index) => index !== indexToRemove));
+    remove(indexToRemove);
+    setTitulos(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   //Captura do Formulário
@@ -378,18 +381,24 @@ export default function Home() {
     register,
     handleSubmit,
     formState: { errors },
+    control
   } = useForm<{forms: esquemaDeDadosFormulario}>({
     defaultValues:{
       forms: [{
         codigo: "",
         titulo: "",
         estoque: "",
-        preco:"",
+        preco:"159,90",
         tamanho_masculino: true,
         tamanho_feminino: true,
         tamanho_infantil: true,
       }]
     }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "forms"
   });
 
   const onSubmit: SubmitHandler<{forms: esquemaDeDadosFormulario}> = async (data) => {
@@ -509,10 +518,8 @@ export default function Home() {
 
         // Dados da Planilha
         var preco = parseFloat(dadosFormulario.preco.replace("R$", "").replace(".", "").replace(",", "."));
-        var estoque = parseInt(dadosFormulario.estoque);
 
         var produtosEVariacoes: any = [];
-
         var dadosVariacoesBling: any = [];
         if (tipoDeProduto === "camisa") {
 
@@ -539,6 +546,11 @@ export default function Home() {
             || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoMasculino)
             || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoMasculino);
 
+            let imagensConcatenadasMasculinas = imagensMasculinas 
+              && imagensMasculinas.length > 0 
+              ? imagensMasculinas.join("|") 
+              : imagensMasculinas;
+
             // Produto Pai
             let produtoPai = [
               {
@@ -553,7 +565,7 @@ export default function Home() {
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: "",
                 marca: nomeLoja,
-                url_imagens_externas: imagensMasculinas.join("|"),
+                url_imagens_externas: imagensConcatenadasMasculinas,
                 grupo_de_produtos: "Camisa Master",
               },
             ];
@@ -579,7 +591,7 @@ export default function Home() {
                 tipo_producao: "Terceiros", // backlog Bling 1
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
-                url_imagens_externas: imagensMasculinas.join("|"),
+                url_imagens_externas: imagensConcatenadasMasculinas,
                 grupo_de_produtos: "Camisa Master",
                 ean: resultaldoEAN.numero
               });
@@ -663,6 +675,11 @@ export default function Home() {
             || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoFeminino)
             || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoFeminino);
 
+            let imagensConcatenadasFemininas = imagensFemininas 
+              && imagensFemininas.length > 0 
+              ? imagensFemininas.join("|") 
+              : imagensFemininas;
+
             // Produto Pai
             var produtoPai = [
               {
@@ -677,7 +694,7 @@ export default function Home() {
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: "",
                 marca: nomeLoja,
-                url_imagens_externas: imagensFemininas.join("|"),
+                url_imagens_externas: imagensConcatenadasFemininas,
                 grupo_de_produtos: "Camisa Master",
               },
             ];
@@ -703,7 +720,7 @@ export default function Home() {
                 tipo_producao: "Terceiros",
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}BL`,
-                url_imagens_externas: imagensFemininas.join("|"),
+                url_imagens_externas: imagensConcatenadasFemininas,
                 grupo_de_produtos: "Camisa Master",
                 ean: resultaldoEAN.numero
               });
@@ -787,6 +804,11 @@ export default function Home() {
             || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoInfantil)
             || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoInfantil);
 
+            let imagensConcatenadasInfantis = imagensInfantis 
+              && imagensInfantis.length > 0 
+              ? imagensInfantis.join("|") 
+              : imagensInfantis;
+
             // Produto Pai
             let produtoPai = [
               {
@@ -801,7 +823,7 @@ export default function Home() {
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: "",
                 marca: nomeLoja,
-                url_imagens_externas: imagensInfantis.join("|"),
+                url_imagens_externas: imagensConcatenadasInfantis,
                 grupo_de_produtos: "Camisa Master",
               },
             ];
@@ -827,7 +849,7 @@ export default function Home() {
                 tipo_producao: "Terceiros",
                 tipo_do_item: "Mercadoria para Revenda",
                 codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}I`,
-                url_imagens_externas: imagensInfantis.join("|"),
+                url_imagens_externas: imagensConcatenadasInfantis,
                 grupo_de_produtos: "Camisa Master",
                 ean: resultaldoEAN.numero
               });
@@ -944,8 +966,8 @@ export default function Home() {
 
     try {
       if (tipoCadastro === "planilha") {
-        //console.log("Dados da Planilha:", todosOsProdutos);
-        geraPlanilha(todosOsProdutos, "cadastro-bling");
+        console.log("Dados da Planilha:", todosOsProdutos);
+        //geraPlanilha(todosOsProdutos, "cadastro-bling");
       } else if (tipoCadastro === "bling") {
         //console.log("Dados do Bling:", dadosBling);
         // saveProdutos(dadosBling);
@@ -1217,148 +1239,155 @@ export default function Home() {
         {/* Formulários */}
         <div className="flex justify-center items-center container z-10">
           <form className="flex w-full flex-col justify-center items-center" onSubmit={handleSubmit(onSubmit)}>            
-            {formInstances.map((instance, index) => (
-            <div key={instance} className="w-full max-sm:mx-4 mb-10 border-b border-zinc-800 pb-10">
-              <button
-                type="button"
-                onClick={() => removeFormInstance(index)}
-                className={`${formInstances.length === 1 ? "hidden" : "flex"} text-red-400 hover:text-red-300 text-sm items-center gap-1`}
-              >
-                <span>Remover</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="flex w-full max-sm:mx-4 max-sm:flex-col justify-center items-center gap-10 my-10">
-                {tipoDeProduto === "camisa" && (
-                  <>
-                    <div className="flex w-full justify-center items-center gap-10">
-                      <div className="flex">
-                          <input
-                            className="text-zinc-200 cursor-pointer"
-                            type="file"
-                            multiple
-                            {...register(`forms.${index}.imagens`)}
-                          />
-                      </div>
+            {fields.map((field, index) => (
+              <div key={field.id} className="w-full max-sm:mx-4 mb-10 border-b border-zinc-800 pb-10">
+                <button
+                  type="button"
+                  onClick={() => removeFormInstance(index)}
+                  className={`${fields.length === 1 ? "hidden" : "flex"} text-red-400 hover:text-red-300 text-sm items-center gap-1`}
+                >
+                  <span>Remover</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                <div className="flex w-full max-sm:mx-4 max-sm:flex-col justify-center items-center gap-10 my-10">
+                  {tipoDeProduto === "camisa" && (
+                    <>
+                      <div className="flex w-full justify-center items-center gap-10">
+                        <div className="flex">
+                            <input
+                              className="text-zinc-200 cursor-pointer"
+                              type="file"
+                              multiple
+                              {...register(`forms.${index}.imagens`)}
+                            />
+                        </div>
 
-                      <div className="flex w-full lg:flex-col flex-col gap-10">
-                        <div className="flex gap-10">
-                          <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="codigo">
-                          Código
-                          <input
-                            className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
-                            id="codigo"
-                            type="text"
-                            placeholder="Ex: C0..."
-                            required
-                            {...register(`forms.${index}.codigo`)}
-                          />
-                        </label>
-                          <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="preco">
-                            Preço
-                            <CurrencyInput
-                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                              id="preco"
-                              placeholder={`${precos.camisa}`}
-                              defaultValue={`${precos.camisa}`}
-                              intlConfig={{ locale: "pt-BR", currency: "BRL" }}
-                              {...register(`forms.${index}.preco`)}
+                        <div className="flex w-full lg:flex-col flex-col gap-10">
+                          <div className="flex gap-10">
+                            <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="codigo">
+                            Código
+                            <input
+                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
+                              id="codigo"
+                              type="text"
+                              placeholder="Ex: C0..."
+                              required
+                              {...register(`forms.${index}.codigo`)}
                             />
                           </label>
-                        </div>
-
-                        <div className="flex">
-                          <label className="flex w-full flex-col gap-2 text-zinc-200" htmlFor="titulo">
-                              Titulo
-                              <input
-                                className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 capitalize"
-                                id="titulo"
-                                type="text"
-                                placeholder="Ex: Camisa Agro Brk..."
-                                required
-                                {...register(`forms.${index}.titulo`)}
+                            <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="preco">
+                              Preço
+                              <CurrencyInput
+                                className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                                id="preco"
+                                placeholder={`${precos.camisa}`}
+                                defaultValue={`${precos.camisa}`}
+                                intlConfig={{ locale: "pt-BR", currency: "BRL" }}
+                                {...register(`forms.${index}.preco`)}
                               />
-                          </label>
-                        </div>
-                        
-                        
-                      </div>
-
-                      {/* Variações de Gêneros */}
-                      <div className="flex w-auto">
-                        <div className="flex flex-coljustify-center border border-slate-200/10 p-4 gap-10">
-
-                          <div className="flex flex-col gap-4">
-                            <div>
-                              <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-masculino-${index}`}>
-                                <input id={`tamanho-masculino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_masculino`)} defaultChecked={true} />
-                                <span className="text-zinc-200">Masculino</span>
-                              </label>
-                            </div>
-                            <div>
-                              <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-feminino-${index}`}>
-                                <input id={`tamanho-feminino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_feminino`)} defaultChecked={true} />
-                                <span className="text-zinc-200">Feminino</span>
-                              </label>
-                            </div>
-                            <div>
-                              <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-infantil-${index}`}>
-                                <input id={`tamanho-infantil-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_infantil`)} defaultChecked={true} />
-                                <span className="text-zinc-200">Infantil</span>
-                              </label>
-                            </div>
+                            </label>
                           </div>
 
+                          <div className="flex">
+                            <label className="flex w-full flex-col gap-2 text-zinc-200" htmlFor="titulo">
+                                Titulo
+                                <input
+                                  className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                                  id="titulo"
+                                  type="text"
+                                  placeholder="Ex: Camisa Agro Brk..."
+                                  required
+                                  {...register(`forms.${index}.titulo`)}
+                                  onChange={value => {
+                                    const newTitulos = [...titulos];
+                                    newTitulos[index] = value.target.value;
+                                    setTitulos(newTitulos);
+                                  }}
+                                />
+                                <div className="flex justify-between">
+                                  <span className="text-zinc-400/50 text-sm font-light">
+                                    {(() => {
+                                      switch(loja){ 
+                                        case "agro":
+                                          return `Camisa Agro Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                        case "fishing":
+                                          return `Camisa de Pesca Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                        case "motors":
+                                          return `Camisa Motociclismo Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                        default:
+                                          return `${titulos[index] || ""}`;
+                                      }
+                                    })()}
+                                  </span>
+                                  <span className={`${(() => {
+                                    const textoCompleto = (() => {
+                                      switch(loja){ 
+                                        case "agro":
+                                          return `Camisa Agro Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                        case "fishing":
+                                          return `Camisa de Pesca Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                        case "motors":
+                                          return `Camisa Motociclismo Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                        default:
+                                          return `${titulos[index] || ""}`;
+                                      }
+                                    })();
+                                    return textoCompleto.length > 65 ? 'text-red-400/90 font-extrabold text-4xl' : 'text-green-400/90';
+                                  })()} text-sm font-light`}>
+                                    {(() => {
+                                      switch(loja){ 
+                                        case "agro":
+                                          return `Camisa Agro Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`.length;
+                                        case "fishing":
+                                          return `Camisa de Pesca Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`.length;
+                                        case "motors":
+                                          return `Camisa Motociclismo Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`.length;
+                                        default:
+                                          return (titulos[index] || "").length;
+                                      }
+                                    })()}
+                                  </span>
+                                </div>
+                            </label>
+                          </div>
+                          
+                          
+                        </div>
+
+                        {/* Variações de Gêneros */}
+                        <div className="flex w-auto">
+                          <div className="flex flex-coljustify-center border border-slate-200/10 p-4 gap-10">
+
+                            <div className="flex flex-col gap-4">
+                              <div>
+                                <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-masculino-${index}`}>
+                                  <input id={`tamanho-masculino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_masculino`)} defaultChecked={true} />
+                                  <span className="text-zinc-200">Masculino</span>
+                                </label>
+                              </div>
+                              <div>
+                                <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-feminino-${index}`}>
+                                  <input id={`tamanho-feminino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_feminino`)} defaultChecked={true} />
+                                  <span className="text-zinc-200">Feminino</span>
+                                </label>
+                              </div>
+                              <div>
+                                <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-infantil-${index}`}>
+                                  <input id={`tamanho-infantil-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_infantil`)} defaultChecked={true} />
+                                  <span className="text-zinc-200">Infantil</span>
+                                </label>
+                              </div>
+                            </div>
+
+                          </div>
                         </div>
                       </div>
-
-                      {/* SEO */}
-                      <div className="hidden flex-col w-full">
-                        <fieldset className="border border-slate-200/10 p-10">
-                          <legend className="text-slate-200 font-bold text-lg px-4">SEO</legend>
-
-                          <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
-                            Meta Title
-                            <input
-                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                              id="titulo"
-                              type="text"
-                              placeholder=""
-                              {...register(`forms.${index}.metatitle`)}
-                              value={`${informacoesSeo[0]}`}
-                            />
-                          </label>
-
-                          <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
-                            Meta Description
-                            <textarea
-                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                              id="titulo"
-                              placeholder=""
-                              {...register(`forms.${index}.metadescription`)}
-                              value={`${informacoesSeo[1]}`}
-                            />
-                          </label>
-
-                          <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
-                            Meta Keywords
-                            <input
-                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                              id="titulo"
-                              type="text"
-                              placeholder=""
-                              {...register(`forms.${index}.metakeywords`)}
-                              value={`${informacoesSeo[2]}`}
-                            />
-                          </label>
-                        </fieldset>
-                      </div>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
             ))}
 
             {/* Botões para adicionar novo produto */}
