@@ -18,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt">
       <body className={`flex min-h-screen min-w-screen justify-center items-center ${inter.className} bg-gradient-to-r from-zinc-800 to-zinc-950`}>
+        <p className="fixed bottom-3 right-3 opacity-15 text-xs font-thin">By Felipe Costa</p>
         <Suspense>{children}</Suspense>
       </body>
     </html>
