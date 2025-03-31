@@ -17,9 +17,9 @@ type esquemaDeDadosFormulario = {
   preco: string;
   imagens: any;
 
-  tamanho_masculino: string;
-  tamanho_feminino: string;
-  tamanho_infantil: string;
+  tamanho_masculino: boolean;
+  tamanho_feminino: boolean;
+  tamanho_infantil: boolean;
 
   cor_branco: string;
   cor_preto: string;
@@ -28,7 +28,7 @@ type esquemaDeDadosFormulario = {
   metatitle: string;
   metadescription: string;
   metakeywords: string;
-};
+}[];
 
 const descricaoCamisaPorLoja = 
   {
@@ -266,6 +266,7 @@ export default function Home() {
   const [usaEan, setUsaEan] = useState(false);
   const [loja, setLoja] = useState("");
   const [data, setData] = useState<any[]>([]);
+  const [formInstances, setFormInstances] = useState<number[]>([0]);
 
   //Integração IA para Geração de SEO
   function geraSEO(tituloProduto: any) {
@@ -358,571 +359,602 @@ export default function Home() {
     });
   }
 
+  // Função para adicionar novo grupo de formulário
+  const addFormInstance = () =>{
+    setFormInstances(prev => [...prev, prev.length])
+  }
+
+  // Função para remover grupo de formulário
+  const removeFormInstance = (indexToRemove: number) => {
+    if (formInstances.length === 1) {
+      alert("Não é possível remover o último formulário!");
+      return;
+    }
+    setFormInstances(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
   //Captura do Formulário
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<esquemaDeDadosFormulario>();
+  } = useForm<{forms: esquemaDeDadosFormulario}>({
+    defaultValues:{
+      forms: [{
+        codigo: "",
+        titulo: "",
+        estoque: "",
+        preco:"",
+        tamanho_masculino: true,
+        tamanho_feminino: true,
+        tamanho_infantil: true,
+      }]
+    }
+  });
 
-  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (dadosFormulario) => {
+  const onSubmit: SubmitHandler<{forms: esquemaDeDadosFormulario}> = async (data) => {
     setCarregando(true);
 
-    var nomeLoja = loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") 
-    || (loja === "fishing" && "Brk Fishing") 
-    || (loja === "motors" && "Brk Motors");
+    var produtosEVariacoesUnidas = [];
+    for(const dadosFormulario of data.forms){
+      var nomeLoja = loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") 
+      || (loja === "fishing" && "Brk Fishing") 
+      || (loja === "motors" && "Brk Motors");
 
-    var descricaoProduto;;
+      var descricaoProduto;;
 
-    //Imagens Bling
-    let todasAsImagensBling:any = [];
-    var imagensMasculinasBling: any = [];
-    var imagensFemininasBling: any = [];
-    var imagensInfantisBling: any = [];
+      //Imagens Bling
+      let todasAsImagensBling:any = [];
+      var imagensMasculinasBling: any = [];
+      var imagensFemininasBling: any = [];
+      var imagensInfantisBling: any = [];
 
-    var imagensCorBrancoBling: any = [];
-    var imagensCorPretoBling: any = [];
-    var imagensCorAzulBling: any = [];
+      var imagensCorBrancoBling: any = [];
+      var imagensCorPretoBling: any = [];
+      var imagensCorAzulBling: any = [];
 
-    //Imagens Planilha
-    let todasAsImagens = [];
-    var imagensMasculinas: any = [];
-    var imagensFemininas: any = [];
-    var imagensInfantis: any = [];
+      //Imagens Planilha
+      let todasAsImagens = [];
+      var imagensMasculinas: any = [];
+      var imagensFemininas: any = [];
+      var imagensInfantis: any = [];
 
-    var imagensCorBranco: any = [];
-    var imagensCorPreto: any = [];
-    var imagensCorAzul: any = [];
+      var imagensCorBranco: any = [];
+      var imagensCorPreto: any = [];
+      var imagensCorAzul: any = [];
 
-    const qtdFiles = Object.keys(files).length;
+      if (loja === ""){
+            alert("Selecione a loja Brk 😓");
+            setCarregando(false);
+            return
+      } 
 
-    if (loja === ""){
-          alert("Selecione a loja Brk 😓");
-          setCarregando(false);
-          return
-    } 
+      // if (qtdFiles === 0){
+      //   alert("Não esqueça as imagens 🖼️");
+      //   setCarregando(false);
+      //   return
+      // }
 
-    if (qtdFiles === 0){
-      alert("Não esqueça as imagens 🖼️");
-      setCarregando(false);
-      return
-    }
+      // getNumeroEans();
+      // if(quantidadeEans < 30){
+      //   alert('Sem número de EANs suficiente 😐. Recarregue os EANs, clicando na quantidade.')
+      //   setCarregando(false)
+      //   return
+      // }
 
-    // getNumeroEans();
-    // if(quantidadeEans < 30){
-    //   alert('Sem número de EANs suficiente 😐. Recarregue os EANs, clicando na quantidade.')
-    //   setCarregando(false)
-    //   return
-    // }
+      var confirmadoPeloUsuario:any;
+      if(tipoCadastro === "bling"){
+        confirmadoPeloUsuario = confirm("⚠️Atenção! Tenha certeza de que os dados estão corretos. Quer mesmo continuar?")
+      }
 
-    var confirmadoPeloUsuario:any;
-    if(tipoCadastro === "bling"){
-      confirmadoPeloUsuario = confirm("⚠️Atenção! Tenha certeza de que os dados estão corretos. Quer mesmo continuar?")
-    }
+      //Continua se o usuário concorda que revisou os dados
+      (!confirmadoPeloUsuario) && setCarregando(false);
+      
+      if(confirmadoPeloUsuario ?? true){
+        setCarregando(true);
 
-    //Continua se o usuário concorda que revisou os dados
-    (!confirmadoPeloUsuario) && setCarregando(false);
+        var formularioFiles = Array.from(dadosFormulario.imagens as FileList || []);
+        
+        //Ordena as Imagens em Ordem Ascendente
+        if (formularioFiles.length > 0) {
+          formularioFiles.sort((a: File, b: File) => {
+            const numA = parseInt(a.name.split("_")[0], 10);
+            const numB = parseInt(b.name.split("_")[0], 10);
+            return numA - numB;
+          });
+        }
+
+        //Upload das imagens separando por Gêneros e Cores por tipo de produto
+        for (let i = 0; i < formularioFiles.length; i++) {
+          const file = formularioFiles[i];
+          const formData = new FormData();
+          formData.append("file", file as File);
+
+          try {
+            const response:any = await axios.post("/api/upload-image-s3",formData);
+            const urlDaImagem = response.data.file.location;
+            // const urlDaImagem = "";
     
-    if(confirmadoPeloUsuario ?? true){
-      setCarregando(true);
-      //Ordena as Imagens em Ordem Ascendente
-      const filesOrdenados = files.toSorted((a, b) => {
-        const numA = parseInt(a.name.split("_")[0], 10);
-        const numB = parseInt(b.name.split("_")[0], 10);
-
-        return numA - numB;
-      });
-
-      //Upload das imagens separando por Gêneros e Cores por tipo de produto
-      for (let i = 0; i < qtdFiles; i++) {
-        const file = filesOrdenados[i];
-        const formData = new FormData();
-        formData.append("file", file);
-
-        try {
-          const response:any = await axios.post("/api/upload-image-s3",formData);
-          const urlDaImagem = response.data.file.location;
-          // const urlDaImagem = "";
-  
-          // Imagens por Gênero
-          if (file.name.toLowerCase().includes("masc")) {
-            imagensMasculinas.push(urlDaImagem);
+            // Imagens por Gênero
+            if (file.name.toLowerCase().includes("masc")) {
+              imagensMasculinas.push(urlDaImagem);
+            }
+    
+            if (file.name.toLowerCase().includes("fem")) {
+              imagensFemininas.push(urlDaImagem);
+            }
+    
+            if (file.name.toLowerCase().includes("inf")) {
+              imagensInfantis.push(urlDaImagem);
+            }
+    
+            // Imagens por Cores
+            if (file.name.toLowerCase().includes("branco")) {
+              imagensCorBranco.push(urlDaImagem);
+            }
+    
+            if (file.name.toLowerCase().includes("preto")) {
+              imagensCorPreto.push(urlDaImagem);
+            }
+    
+            if (file.name.toLowerCase().includes("azul")) {
+              imagensCorAzul.push(urlDaImagem);
+            }
+    
+            todasAsImagens.push(urlDaImagem);
+          } catch (error) {
+            console.error("Erro no Upload da Imagem: ", error);
           }
-  
-          if (file.name.toLowerCase().includes("fem")) {
-            imagensFemininas.push(urlDaImagem);
-          }
-  
-          if (file.name.toLowerCase().includes("inf")) {
-            imagensInfantis.push(urlDaImagem);
-          }
-  
-          // Imagens por Cores
-          if (file.name.toLowerCase().includes("branco")) {
-            imagensCorBranco.push(urlDaImagem);
-          }
-  
-          if (file.name.toLowerCase().includes("preto")) {
-            imagensCorPreto.push(urlDaImagem);
-          }
-  
-          if (file.name.toLowerCase().includes("azul")) {
-            imagensCorAzul.push(urlDaImagem);
-          }
-  
-          todasAsImagens.push(urlDaImagem);
-        } catch (error) {
-          console.error("Erro no Upload da Imagem: ", error);
         }
-      }
 
-      // Dados da Planilha
-      var preco = parseFloat(dadosFormulario.preco.replace("R$", "").replace(".", "").replace(",", "."));
-      var estoque = parseInt(dadosFormulario.estoque);
+        // Dados da Planilha
+        var preco = parseFloat(dadosFormulario.preco.replace("R$", "").replace(".", "").replace(",", "."));
+        var estoque = parseInt(dadosFormulario.estoque);
 
-      var produtosEVariacoes: any = [];
+        var produtosEVariacoes: any = [];
 
-      var dadosVariacoesBling: any = [];
-      if (tipoDeProduto === "camisa") {
+        var dadosVariacoesBling: any = [];
+        if (tipoDeProduto === "camisa") {
 
-        // Variação masculina da camisa
-        if (dadosFormulario.tamanho_masculino) {
-          let codigoProdutoPaiMasculino = dadosFormulario.codigo.toLocaleUpperCase();
+          // Variação masculina da camisa
+          if (dadosFormulario.tamanho_masculino) {
+            let codigoProdutoPaiMasculino = dadosFormulario.codigo.toLocaleUpperCase();
 
-          //Define o titulo de acordo com a loja
-          let tituloProdutoMasculino: any;
-          switch(loja){ 
-            case "agro":
-              tituloProdutoMasculino = `Camisa Agro Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-            case "fishing":
-              tituloProdutoMasculino = `Camisa de Pesca Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-            case "motors":
-              tituloProdutoMasculino = `Camisa Motociclismo Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-          }
-
-          //Define a descrição de acordo com a loja
-          let descricaoProdutoMasculino = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoMasculino)
-          || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoMasculino)
-          || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoMasculino);
-
-          // Produto Pai
-          let produtoPai = [
-            {
-              codigo: codigoProdutoPaiMasculino,
-              descricao: tituloProdutoMasculino,
-              descricao_complementar: descricaoProdutoMasculino,
-              descricao_curta: descricaoProdutoMasculino,
-              estoque: parseFloat("0"),
-              preco: preco,
-              produto_variacao: "Produto",
-              tipo_producao: "Terceiros",
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: "",
-              marca: nomeLoja,
-              url_imagens_externas: todasAsImagens.join("|"),
-              grupo_de_produtos: "Camisa Master",
-            },
-          ];
-
-          var variacaoDeProdutoMasculino: any = [...produtoPai];
-
-          for(var i=0;i < relacaoDeTamanhos[0].masculino.tamanhos.length;i++){
-            var item = relacaoDeTamanhos[0].masculino.tamanhos[i];
-
-            //Sinaliza EAN Como Utilizado
-            var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
-            if (resultaldoEAN) {
-              await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+            //Define o titulo de acordo com a loja
+            let tituloProdutoMasculino: any;
+            switch(loja){ 
+              case "agro":
+                tituloProdutoMasculino = `Camisa Agro Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              case "fishing":
+                tituloProdutoMasculino = `Camisa de Pesca Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              case "motors":
+                tituloProdutoMasculino = `Camisa Motociclismo Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
             }
 
-            //Variacoes para Planilha
-            variacaoDeProdutoMasculino.push({
-              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Tamanho:${item.nome}`, //Título
-              estoque: "1000",
-              preco: preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros", // backlog Bling 1
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
-              url_imagens_externas: imagensMasculinas.join("|"),
-              grupo_de_produtos: "Camisa Master",
-              ean: resultaldoEAN.numero
-            });
+            //Define a descrição de acordo com a loja
+            let descricaoProdutoMasculino = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoMasculino)
+            || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoMasculino)
+            || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoMasculino);
 
-            // Dados Bling
-            dadosVariacoesBling.push({
-              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              marca: nomeLoja,
-              preco: preco,
-              situacao: "A",
-              descricaoCurta: descricaoProduto,
-              unidade: "UN",
-              pesoLiquido: 0.25,
-              pesoBruto: 0.25,
-              volumes: 1,
-              itensPorCaixa: 1,
-              tipoProducao: "P",
-              condicao: 0,
-              freteGratis: false,
-              descricaoComplementar: descricaoProduto,
-              dimensoes: {
-                largura: 10,
-                altura: 11,
-                profundidade: 16,
-                unidadeMedida: 1,
+            // Produto Pai
+            let produtoPai = [
+              {
+                codigo: codigoProdutoPaiMasculino,
+                descricao: tituloProdutoMasculino,
+                descricao_complementar: descricaoProdutoMasculino,
+                descricao_curta: descricaoProdutoMasculino,
+                estoque: parseFloat("0"),
+                preco: preco,
+                produto_variacao: "Produto",
+                tipo_producao: "Terceiros",
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: "",
+                marca: nomeLoja,
+                url_imagens_externas: todasAsImagens.join("|"),
+                grupo_de_produtos: "Camisa Master",
               },
-              actionEstoque: "T",
-              tributacao: {
-                origem: 0,
-                ncm: "6101.30.00",
-                cest: "28.038.00",
-                codigoListaServicos: "",
-                spedTipoItem: "",
-                codigoItem: "",
-                valorBaseStRetencao: 0,
-                valorStRetencao: 0,
-                valorICMSSubstituto: 0,
-              },
-              formato: "S",
-              tipo: "P",
-              gtin: resultaldoEAN.numero,
-              gtinEmbalagem: resultaldoEAN.numero,
-              midia: {
-                imagens: {
-                  imagensURL: imagensMasculinasBling,
+            ];
+
+            var variacaoDeProdutoMasculino: any = [...produtoPai];
+
+            for(var i=0;i < relacaoDeTamanhos[0].masculino.tamanhos.length;i++){
+              var item = relacaoDeTamanhos[0].masculino.tamanhos[i];
+
+              //Sinaliza EAN Como Utilizado
+              var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
+              if (resultaldoEAN) {
+                await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+              }
+
+              //Variacoes para Planilha
+              variacaoDeProdutoMasculino.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                descricao: `Tamanho:${item.nome}`, //Título
+                estoque: "1000",
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros", // backlog Bling 1
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
+                url_imagens_externas: imagensMasculinas.join("|"),
+                grupo_de_produtos: "Camisa Master",
+                ean: resultaldoEAN.numero
+              });
+
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                marca: nomeLoja,
+                preco: preco,
+                situacao: "A",
+                descricaoCurta: descricaoProduto,
+                unidade: "UN",
+                pesoLiquido: 0.25,
+                pesoBruto: 0.25,
+                volumes: 1,
+                itensPorCaixa: 1,
+                tipoProducao: "P",
+                condicao: 0,
+                freteGratis: false,
+                descricaoComplementar: descricaoProduto,
+                dimensoes: {
+                  largura: 10,
+                  altura: 11,
+                  profundidade: 16,
+                  unidadeMedida: 1,
                 },
-              },
-              variacao: {
-                nome: `Gênero:Masculino;Tamanho:${item.nome}`,
-                ordem: 1,
-                produtoPai: {
-                  cloneInfo: false,
+                actionEstoque: "T",
+                tributacao: {
+                  origem: 0,
+                  ncm: "6101.30.00",
+                  cest: "28.038.00",
+                  codigoListaServicos: "",
+                  spedTipoItem: "",
+                  codigoItem: "",
+                  valorBaseStRetencao: 0,
+                  valorStRetencao: 0,
+                  valorICMSSubstituto: 0,
                 },
-              },
-            });
-          }
-
-          produtosEVariacoes.push(variacaoDeProdutoMasculino);
-        }
-
-        // Variação feminina da camisa
-        if (dadosFormulario.tamanho_feminino) {
-          let codigoProdutoPaiFeminino = `${dadosFormulario.codigo.toLocaleUpperCase()}BL`;
-
-          //Define o titulod e acordo com a loja
-          let tituloProdutoFeminino:any;
-          switch(loja){ 
-            case "agro":
-              tituloProdutoFeminino = `Camisa Agro Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-            case "fishing":
-              tituloProdutoFeminino = `Camisa de Pesca Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-            case "motors":
-              tituloProdutoFeminino = `Camisa Motociclismo Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-          }
-
-          //Define a descrição de acordo com a loja
-          let descricaoProdutoFeminino = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoFeminino)
-          || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoFeminino)
-          || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoFeminino);
-
-          // Produto Pai
-          var produtoPai = [
-            {
-              codigo: codigoProdutoPaiFeminino,
-              descricao: tituloProdutoFeminino,
-              descricao_complementar: descricaoProdutoFeminino,
-              descricao_curta: descricaoProdutoFeminino,
-              estoque: parseFloat("0"),
-              preco: preco,
-              produto_variacao: "Produto",
-              tipo_producao: "Terceiros",
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: "",
-              marca: nomeLoja,
-              url_imagens_externas: todasAsImagens.join("|"),
-              grupo_de_produtos: "Camisa Master",
-            },
-          ];
-
-          var variacaoDeProdutoFeminino:any = [...produtoPai];
-
-          for(var i=0;i < relacaoDeTamanhos[0].feminino.tamanhos.length;i++){
-            var item = relacaoDeTamanhos[0].feminino.tamanhos[i];
-            
-            //Sinaliza EAN Como Utilizado
-            var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
-            if (resultaldoEAN) {
-              await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+                formato: "S",
+                tipo: "P",
+                gtin: resultaldoEAN.numero,
+                gtinEmbalagem: resultaldoEAN.numero,
+                midia: {
+                  imagens: {
+                    imagensURL: imagensMasculinasBling,
+                  },
+                },
+                variacao: {
+                  nome: `Gênero:Masculino;Tamanho:${item.nome}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: false,
+                  },
+                },
+              });
             }
 
-            // Dados da Planilha
-            variacaoDeProdutoFeminino.push({
-              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              descricao: `Tamanho:${item.nome}`,
-              estoque: "1000",
-              preco: preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros",
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}BL`,
-              url_imagens_externas: imagensFemininas.join("|"),
-              grupo_de_produtos: "Camisa Master",
-              ean: resultaldoEAN.numero
-            });
-
-            // Dados do Bling
-            dadosVariacoesBling.push({
-              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              preco: preco,
-              situacao: "A",
-              descricaoCurta: "Descrição curta",
-              unidade: "UN",
-              pesoLiquido: 0.25,
-              pesoBruto: 0.25,
-              volumes: 1,
-              itensPorCaixa: 1,
-              tipoProducao: "P",
-              condicao: 0,
-              freteGratis: false,
-              marca: nomeLoja,
-              descricaoComplementar: "Descrição complementar",
-              dimensoes: {
-                largura: 10,
-                altura: 11,
-                profundidade: 16,
-                unidadeMedida: 1,
-              },
-              actionEstoque: "T",
-              tributacao: {
-                origem: 0,
-                ncm: "6101.30.00",
-                cest: "28.038.00",
-                codigoListaServicos: "",
-                spedTipoItem: "",
-                codigoItem: "",
-                valorBaseStRetencao: 0,
-                valorStRetencao: 0,
-                valorICMSSubstituto: 0,
-              },
-              formato: "S",
-              tipo: "P",
-              gtin: resultaldoEAN.numero,
-              gtinEmbalagem: resultaldoEAN.numero,
-              midia: {
-                imagens: {
-                  imagensURL: imagensFemininasBling,
-                },
-              },
-              variacao: {
-                nome: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
-                ordem: 1,
-                produtoPai: {
-                  cloneInfo: false,
-                },
-              },
-            });
+            produtosEVariacoes.push(variacaoDeProdutoMasculino);
           }
 
-          produtosEVariacoes.push(variacaoDeProdutoFeminino);
-        }
+          // Variação feminina da camisa
+          if (dadosFormulario.tamanho_feminino) {
+            let codigoProdutoPaiFeminino = `${dadosFormulario.codigo.toLocaleUpperCase()}BL`;
 
-        // Variação infantil da camisa
-        if (dadosFormulario.tamanho_infantil) {
-          let codigoProdutoPaiInfantil = `${dadosFormulario.codigo.toLocaleUpperCase()}I`;
-
-          //Define o titulo de acordo com a loja
-          let tituloProdutoInfantil:any;
-          switch(loja){ 
-            case "agro":
-              tituloProdutoInfantil = `Camisa Agro Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-            case "fishing":
-              tituloProdutoInfantil = `Camisa de Pesca Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-            case "motors":
-              tituloProdutoInfantil = `Camisa Motociclismo Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
-              break;
-          }
-
-          //Define a descrição de acordo com a loja
-          let descricaoProdutoInfantil = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoInfantil)
-          || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoInfantil)
-          || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoInfantil);
-
-          // Produto Pai
-          let produtoPai = [
-            {
-              codigo: codigoProdutoPaiInfantil,
-              descricao: tituloProdutoInfantil,
-              descricao_complementar: descricaoProdutoInfantil,
-              descricao_curta: descricaoProdutoInfantil,
-              estoque: parseFloat("0"),
-              preco: preco,
-              produto_variacao: "Produto",
-              tipo_producao: "Terceiros",
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: "",
-              marca: nomeLoja,
-              url_imagens_externas: todasAsImagens.join("|"),
-              grupo_de_produtos: "Camisa Master",
-            },
-          ];
-
-          var variacaoDeProdutoInfantil:any = [...produtoPai];
-
-          for(var i=0;i < relacaoDeTamanhos[0].infantil.tamanhos.length;i++){
-            var item = relacaoDeTamanhos[0].infantil.tamanhos[i];
-            
-            //Sinaliza EAN Como Utilizado
-            var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
-            if (resultaldoEAN) {
-              await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+            //Define o titulod e acordo com a loja
+            let tituloProdutoFeminino:any;
+            switch(loja){ 
+              case "agro":
+                tituloProdutoFeminino = `Camisa Agro Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              case "fishing":
+                tituloProdutoFeminino = `Camisa de Pesca Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              case "motors":
+                tituloProdutoFeminino = `Camisa Motociclismo Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
             }
 
-            variacaoDeProdutoInfantil.push({
-              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              marca: loja,
-              descricao: `Tamanho:${item.nome}`,
-              estoque: "1000",
-              preco: preco,
-              produto_variacao: "Variação",
-              tipo_producao: "Terceiros",
-              tipo_do_item: "Mercadoria para Revenda",
-              codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}I`,
-              url_imagens_externas: imagensInfantis.join("|"),
-              grupo_de_produtos: "Camisa Master",
-              ean: resultaldoEAN.numero
-            });
+            //Define a descrição de acordo com a loja
+            let descricaoProdutoFeminino = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoFeminino)
+            || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoFeminino)
+            || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoFeminino);
 
-            // Dados Bling
-            dadosVariacoesBling.push({
-              codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-              marca:nomeLoja,
-              preco: preco,
-              situacao: "A",
-              descricaoCurta: "Descrição curta",
-              unidade: "UN",
-              pesoLiquido: 0.25,
-              pesoBruto: 0.25,
-              volumes: 1,
-              itensPorCaixa: 1,
-              tipoProducao: "P",
-              condicao: 0,
-              freteGratis: false,
-              descricaoComplementar: "Descrição complementar",
-              dimensoes: {
-                largura: 10,
-                altura: 11,
-                profundidade: 16,
-                unidadeMedida: 1,
+            // Produto Pai
+            var produtoPai = [
+              {
+                codigo: codigoProdutoPaiFeminino,
+                descricao: tituloProdutoFeminino,
+                descricao_complementar: descricaoProdutoFeminino,
+                descricao_curta: descricaoProdutoFeminino,
+                estoque: parseFloat("0"),
+                preco: preco,
+                produto_variacao: "Produto",
+                tipo_producao: "Terceiros",
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: "",
+                marca: nomeLoja,
+                url_imagens_externas: todasAsImagens.join("|"),
+                grupo_de_produtos: "Camisa Master",
               },
-              actionEstoque: "T",
-              tributacao: {
-                origem: 0,
-                ncm: "6101.30.00",
-                cest: "28.038.00",
-                codigoListaServicos: "",
-                spedTipoItem: "",
-                codigoItem: "",
-                valorBaseStRetencao: 0,
-                valorStRetencao: 0,
-                valorICMSSubstituto: 0,
-              },
-              formato: "S",
-              tipo: "P",
-              gtin: resultaldoEAN.numero,
-              gtinEmbalagem: resultaldoEAN.numero,
-              midia: {
-                imagens: {
-                  imagensURL: imagensInfantisBling,
+            ];
+
+            var variacaoDeProdutoFeminino:any = [...produtoPai];
+
+            for(var i=0;i < relacaoDeTamanhos[0].feminino.tamanhos.length;i++){
+              var item = relacaoDeTamanhos[0].feminino.tamanhos[i];
+              
+              //Sinaliza EAN Como Utilizado
+              var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
+              if (resultaldoEAN) {
+                await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+              }
+
+              // Dados da Planilha
+              variacaoDeProdutoFeminino.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                descricao: `Tamanho:${item.nome}`,
+                estoque: "1000",
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros",
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}BL`,
+                url_imagens_externas: imagensFemininas.join("|"),
+                grupo_de_produtos: "Camisa Master",
+                ean: resultaldoEAN.numero
+              });
+
+              // Dados do Bling
+              dadosVariacoesBling.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                preco: preco,
+                situacao: "A",
+                descricaoCurta: "Descrição curta",
+                unidade: "UN",
+                pesoLiquido: 0.25,
+                pesoBruto: 0.25,
+                volumes: 1,
+                itensPorCaixa: 1,
+                tipoProducao: "P",
+                condicao: 0,
+                freteGratis: false,
+                marca: nomeLoja,
+                descricaoComplementar: "Descrição complementar",
+                dimensoes: {
+                  largura: 10,
+                  altura: 11,
+                  profundidade: 16,
+                  unidadeMedida: 1,
                 },
-              },
-              variacao: {
-                nome: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
-                ordem: 1,
-                produtoPai: {
-                  cloneInfo: false,
+                actionEstoque: "T",
+                tributacao: {
+                  origem: 0,
+                  ncm: "6101.30.00",
+                  cest: "28.038.00",
+                  codigoListaServicos: "",
+                  spedTipoItem: "",
+                  codigoItem: "",
+                  valorBaseStRetencao: 0,
+                  valorStRetencao: 0,
+                  valorICMSSubstituto: 0,
                 },
-              },
-            });
+                formato: "S",
+                tipo: "P",
+                gtin: resultaldoEAN.numero,
+                gtinEmbalagem: resultaldoEAN.numero,
+                midia: {
+                  imagens: {
+                    imagensURL: imagensFemininasBling,
+                  },
+                },
+                variacao: {
+                  nome: `Gênero:Feminino;Tamanho:Baby Look ${item.nome}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: false,
+                  },
+                },
+              });
+            }
+
+            produtosEVariacoes.push(variacaoDeProdutoFeminino);
           }
 
-          produtosEVariacoes.push(variacaoDeProdutoInfantil);
-        }
-      }
+          // Variação infantil da camisa
+          if (dadosFormulario.tamanho_infantil) {
+            let codigoProdutoPaiInfantil = `${dadosFormulario.codigo.toLocaleUpperCase()}I`;
 
-      const dadosBling = {
-        nome: dadosFormulario.titulo,
-        codigo: dadosFormulario.codigo.toLocaleUpperCase(),
-        preco: preco,
-        tipo: "P",
-        situacao: "A",
-        formato: "V",
-        descricaoCurta: descricaoProduto,
-        unidade: "UN",
-        pesoLiquido: 0.25,
-        pesoBruto: 0.25,
-        volumes: 1,
-        itensPorCaixa: 1,
-        gtin: "",
-        gtinEmbalagem: "",
-        tipoProducao: "P",
-        condicao: 0,
-        freteGratis: false,
-        marca: nomeLoja,
-        descricaoComplementar: descricaoProduto,
-        dimensoes: {
-          largura: 10,
-          altura: 11,
-          profundidade: 16,
-          unidadeMedida: 1,
-        },
-        actionEstoque: "T",
-        tributacao: {
-          origem: 0,
-          ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00',
-          cest: "28.038.00",
-          codigoListaServicos: "",
-          spedTipoItem: "",
-          codigoItem: "",
-          valorBaseStRetencao: 0,
-          valorStRetencao: 0,
-          valorICMSSubstituto: 0,
-        },
-        midia: {
-          imagens: {
-            imagensURL: todasAsImagensBling,
+            //Define o titulo de acordo com a loja
+            let tituloProdutoInfantil:any;
+            switch(loja){ 
+              case "agro":
+                tituloProdutoInfantil = `Camisa Agro Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              case "fishing":
+                tituloProdutoInfantil = `Camisa de Pesca Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              case "motors":
+                tituloProdutoInfantil = `Camisa Motociclismo Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+            }
+
+            //Define a descrição de acordo com a loja
+            let descricaoProdutoInfantil = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoInfantil)
+            || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoInfantil)
+            || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoInfantil);
+
+            // Produto Pai
+            let produtoPai = [
+              {
+                codigo: codigoProdutoPaiInfantil,
+                descricao: tituloProdutoInfantil,
+                descricao_complementar: descricaoProdutoInfantil,
+                descricao_curta: descricaoProdutoInfantil,
+                estoque: parseFloat("0"),
+                preco: preco,
+                produto_variacao: "Produto",
+                tipo_producao: "Terceiros",
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: "",
+                marca: nomeLoja,
+                url_imagens_externas: todasAsImagens.join("|"),
+                grupo_de_produtos: "Camisa Master",
+              },
+            ];
+
+            var variacaoDeProdutoInfantil:any = [...produtoPai];
+
+            for(var i=0;i < relacaoDeTamanhos[0].infantil.tamanhos.length;i++){
+              var item = relacaoDeTamanhos[0].infantil.tamanhos[i];
+              
+              //Sinaliza EAN Como Utilizado
+              var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
+              if (resultaldoEAN) {
+                await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+              }
+
+              variacaoDeProdutoInfantil.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                marca: loja,
+                descricao: `Tamanho:${item.nome}`,
+                estoque: "1000",
+                preco: preco,
+                produto_variacao: "Variação",
+                tipo_producao: "Terceiros",
+                tipo_do_item: "Mercadoria para Revenda",
+                codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}I`,
+                url_imagens_externas: imagensInfantis.join("|"),
+                grupo_de_produtos: "Camisa Master",
+                ean: resultaldoEAN.numero
+              });
+
+              // Dados Bling
+              dadosVariacoesBling.push({
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                marca:nomeLoja,
+                preco: preco,
+                situacao: "A",
+                descricaoCurta: "Descrição curta",
+                unidade: "UN",
+                pesoLiquido: 0.25,
+                pesoBruto: 0.25,
+                volumes: 1,
+                itensPorCaixa: 1,
+                tipoProducao: "P",
+                condicao: 0,
+                freteGratis: false,
+                descricaoComplementar: "Descrição complementar",
+                dimensoes: {
+                  largura: 10,
+                  altura: 11,
+                  profundidade: 16,
+                  unidadeMedida: 1,
+                },
+                actionEstoque: "T",
+                tributacao: {
+                  origem: 0,
+                  ncm: "6101.30.00",
+                  cest: "28.038.00",
+                  codigoListaServicos: "",
+                  spedTipoItem: "",
+                  codigoItem: "",
+                  valorBaseStRetencao: 0,
+                  valorStRetencao: 0,
+                  valorICMSSubstituto: 0,
+                },
+                formato: "S",
+                tipo: "P",
+                gtin: resultaldoEAN.numero,
+                gtinEmbalagem: resultaldoEAN.numero,
+                midia: {
+                  imagens: {
+                    imagensURL: imagensInfantisBling,
+                  },
+                },
+                variacao: {
+                  nome: `Gênero:Infantil;Tamanho:Infantil ${item.nome}`,
+                  ordem: 1,
+                  produtoPai: {
+                    cloneInfo: false,
+                  },
+                },
+              });
+            }
+
+            produtosEVariacoes.push(variacaoDeProdutoInfantil);
+          }
+        }
+
+        const dadosBling = {
+          nome: dadosFormulario.titulo,
+          codigo: dadosFormulario.codigo.toLocaleUpperCase(),
+          preco: preco,
+          tipo: "P",
+          situacao: "A",
+          formato: "V",
+          descricaoCurta: descricaoProduto,
+          unidade: "UN",
+          pesoLiquido: 0.25,
+          pesoBruto: 0.25,
+          volumes: 1,
+          itensPorCaixa: 1,
+          gtin: "",
+          gtinEmbalagem: "",
+          tipoProducao: "P",
+          condicao: 0,
+          freteGratis: false,
+          marca: nomeLoja,
+          descricaoComplementar: descricaoProduto,
+          dimensoes: {
+            largura: 10,
+            altura: 11,
+            profundidade: 16,
+            unidadeMedida: 1,
           },
-        },
-        variacoes: dadosVariacoesBling,
-      };
+          actionEstoque: "T",
+          tributacao: {
+            origem: 0,
+            ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00',
+            cest: "28.038.00",
+            codigoListaServicos: "",
+            spedTipoItem: "",
+            codigoItem: "",
+            valorBaseStRetencao: 0,
+            valorStRetencao: 0,
+            valorICMSSubstituto: 0,
+          },
+          midia: {
+            imagens: {
+              imagensURL: todasAsImagensBling,
+            },
+          },
+          variacoes: dadosVariacoesBling,
+        };
 
-      //junte todas as informações de produtosEVariacoes em um array
-      const produtosEVariacoesUnidas = produtosEVariacoes.flat();
-
-
-      try {
-        if (tipoCadastro === "planilha") {
-          //console.log("Dados da Planilha:", produtosEVariacoesUnidas);
-          geraPlanilha(produtosEVariacoesUnidas, dadosFormulario.codigo.toUpperCase());
-        } else if (tipoCadastro === "bling") {
-          //console.log("Dados do Bling:", dadosBling);
-          // saveProdutos(dadosBling);
-        }
-      } catch (error) {
-        alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
-        setCarregando(false);
-      } finally {
-        setCarregando(false);
+        produtosEVariacoesUnidas.push(produtosEVariacoes.flat());   
       }
+    }
+    
+    var todosOsProdutos = produtosEVariacoesUnidas.flat();
+    console.log(todosOsProdutos);
 
+    try {
+      if (tipoCadastro === "planilha") {
+        //console.log("Dados da Planilha:", todosOsProdutos);
+        geraPlanilha(todosOsProdutos, "cadastro-bling");
+      } else if (tipoCadastro === "bling") {
+        //console.log("Dados do Bling:", dadosBling);
+        // saveProdutos(dadosBling);
+      }
+    } catch (error) {
+      alert(`Opa, tem algum problema rolando... Chama o dev 😒: ${error}`);
+      setCarregando(false);
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -1185,176 +1217,160 @@ export default function Home() {
         {/* Formulários */}
         <div className="flex justify-center items-center container z-10">
           <form className="flex w-full flex-col justify-center items-center" onSubmit={handleSubmit(onSubmit)}>            
-            <div className="flex w-full max-sm:mx-4 max-sm:flex-col justify-center items-center gap-10 my-10">
-              {tipoDeProduto === "camisa" && (
-                <>
-                  <div className="flex w-full justify-center items-center gap-10">
-                    <div className="flex">
-                      <label
-                        htmlFor="imagens-dropbox"
-                        {...getRootProps({
-                          className: `dropzone 
-                          flex
-                          w-[230px]
-                          h-[230px]
-                          justify-center 
-                          items-center 
-                          bg-zinc-900 
-                          hover:bg-zinc-800 
-                          border 
-                          border-zinc-700 
-                          border-dashed 
-                          cursor-pointer 
-                          rounded-lg
-                          mt-4 
-                          p-7 
-                          `,
-                        })}
-                      >
-                        <input
-                          className="text-zinc-200 hidden pointer-events-none"
-                          type="file"
-                          id="imagens-dropbox"
-                          multiple
-                          // required
-                          {...register("imagens")}
-                          
-                        />
-
-                        <div className="flex flex-col justify-center items-center gap-1 text-slate-100">
-                          <ul className="flex flex-wrap text-slate-100/45 gap-4 justify-center items-center overflow-y-auto">
-                            <div className="flex gap-1 flex-wrap">
-                              {files.length === 0 ? (
-                                <div className="flex flex-col gap-1 justify-center items-center text-slate-100/45">
-                                  <FileArrowDown size={32} />
-                                </div>
-                              ) : (
-                                thumbs
-                              )}
-                            </div>
-                          </ul>
-                        </div>
-                      </label>
-                    </div>
-
-                    <div className="flex w-full lg:flex-col flex-col gap-10">
-                      <div className="flex gap-10">
-                        <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="codigo">
-                        Código
-                        <input
-                          className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
-                          id="codigo"
-                          type="text"
-                          placeholder="Ex: C0..."
-                          required
-                          {...register("codigo")}
-                        />
-                      </label>
-                        <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="preco">
-                          Preço
-                          <CurrencyInput
-                            className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                            id="preco"
-                            placeholder={`${precos.camisa}`}
-                            defaultValue={`${precos.camisa}`}
-                            intlConfig={{ locale: "pt-BR", currency: "BRL" }}
-                            {...register("preco")}
+            {formInstances.map((instance, index) => (
+            <div key={instance} className="w-full max-sm:mx-4 mb-10 border-b border-zinc-800 pb-10">
+              <button
+                type="button"
+                onClick={() => removeFormInstance(index)}
+                className={`${formInstances.length === 1 ? "hidden" : "flex"} text-red-400 hover:text-red-300 text-sm items-center gap-1`}
+              >
+                <span>Remover</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="flex w-full max-sm:mx-4 max-sm:flex-col justify-center items-center gap-10 my-10">
+                {tipoDeProduto === "camisa" && (
+                  <>
+                    <div className="flex w-full justify-center items-center gap-10">
+                      <div className="flex">
+                          <input
+                            className="text-zinc-200 cursor-pointer"
+                            type="file"
+                            multiple
+                            {...register(`forms.${index}.imagens`)}
                           />
-                        </label>
                       </div>
 
-                      <div className="flex">
-                        <label className="flex w-full flex-col gap-2 text-zinc-200" htmlFor="titulo">
-                            Titulo
+                      <div className="flex w-full lg:flex-col flex-col gap-10">
+                        <div className="flex gap-10">
+                          <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="codigo">
+                          Código
+                          <input
+                            className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
+                            id="codigo"
+                            type="text"
+                            placeholder="Ex: C0..."
+                            required
+                            {...register(`forms.${index}.codigo`)}
+                          />
+                        </label>
+                          <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="preco">
+                            Preço
+                            <CurrencyInput
+                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                              id="preco"
+                              placeholder={`${precos.camisa}`}
+                              defaultValue={`${precos.camisa}`}
+                              intlConfig={{ locale: "pt-BR", currency: "BRL" }}
+                              {...register(`forms.${index}.preco`)}
+                            />
+                          </label>
+                        </div>
+
+                        <div className="flex">
+                          <label className="flex w-full flex-col gap-2 text-zinc-200" htmlFor="titulo">
+                              Titulo
+                              <input
+                                className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 capitalize"
+                                id="titulo"
+                                type="text"
+                                placeholder="Ex: Camisa Agro Brk..."
+                                required
+                                {...register(`forms.${index}.titulo`)}
+                              />
+                          </label>
+                        </div>
+                        
+                        
+                      </div>
+
+                      {/* Variações de Gêneros */}
+                      <div className="flex w-auto">
+                        <div className="flex flex-coljustify-center border border-slate-200/10 p-4 gap-10">
+
+                          <div className="flex flex-col gap-4">
+                            <div>
+                              <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-masculino-${index}`}>
+                                <input id={`tamanho-masculino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_masculino`)} defaultChecked={true} />
+                                <span className="text-zinc-200">Masculino</span>
+                              </label>
+                            </div>
+                            <div>
+                              <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-feminino-${index}`}>
+                                <input id={`tamanho-feminino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_feminino`)} defaultChecked={true} />
+                                <span className="text-zinc-200">Feminino</span>
+                              </label>
+                            </div>
+                            <div>
+                              <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-infantil-${index}`}>
+                                <input id={`tamanho-infantil-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_infantil`)} defaultChecked={true} />
+                                <span className="text-zinc-200">Infantil</span>
+                              </label>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+                      {/* SEO */}
+                      <div className="hidden flex-col w-full">
+                        <fieldset className="border border-slate-200/10 p-10">
+                          <legend className="text-slate-200 font-bold text-lg px-4">SEO</legend>
+
+                          <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
+                            Meta Title
                             <input
-                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 capitalize"
+                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
                               id="titulo"
                               type="text"
-                              placeholder="Ex: Camisa Agro Brk..."
-                              required
-                              {...register("titulo")}
-                              // onBlur={(e) => geraSEO(e.target.value)}
+                              placeholder=""
+                              {...register(`forms.${index}.metatitle`)}
+                              value={`${informacoesSeo[0]}`}
                             />
-                        </label>
-                      </div>
-                      
-                      
-                    </div>
+                          </label>
 
-                    {/* Variações de Gêneros */}
-                    <div className="flex w-auto">
-                      <div className="flex flex-coljustify-center border border-slate-200/10 p-4 gap-10">
+                          <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
+                            Meta Description
+                            <textarea
+                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                              id="titulo"
+                              placeholder=""
+                              {...register(`forms.${index}.metadescription`)}
+                              value={`${informacoesSeo[1]}`}
+                            />
+                          </label>
 
-                        <div className="flex flex-col gap-4">
-                          <div>
-                            <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-masculino">
-                              <input id="tamanho-masculino" type="checkbox" {...register("tamanho_masculino")} defaultChecked={true} />
-                              <span className="text-zinc-200">Masculino</span>
-                            </label>
-                          </div>
-                          <div>
-                            <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-feminino">
-                              <input id="tamanho-feminino" type="checkbox" {...register("tamanho_feminino")} defaultChecked={true} />
-                              <span className="text-zinc-200">Feminino</span>
-                            </label>
-                          </div>
-                          <div>
-                            <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor="tamanho-infantil">
-                              <input id="tamanho-infantil" type="checkbox" {...register("tamanho_infantil")} defaultChecked={true} />
-                              <span className="text-zinc-200">Infantil</span>
-                            </label>
-                          </div>
-                        </div>
-
+                          <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
+                            Meta Keywords
+                            <input
+                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                              id="titulo"
+                              type="text"
+                              placeholder=""
+                              {...register(`forms.${index}.metakeywords`)}
+                              value={`${informacoesSeo[2]}`}
+                            />
+                          </label>
+                        </fieldset>
                       </div>
                     </div>
-
-                    {/* SEO */}
-                    <div className="hidden flex-col w-full">
-                      <fieldset className="border border-slate-200/10 p-10">
-                        <legend className="text-slate-200 font-bold text-lg px-4">SEO</legend>
-
-                        <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
-                          Meta Title
-                          <input
-                            className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                            id="titulo"
-                            type="text"
-                            placeholder=""
-                            {...register("metatitle")}
-                            value={`${informacoesSeo[0]}`}
-                          />
-                        </label>
-
-                        <label className="flex flex-col gap-2 text-zinc-200 mb-8" htmlFor="titulo">
-                          Meta Description
-                          <textarea
-                            className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                            id="titulo"
-                            placeholder=""
-                            {...register("metadescription")}
-                            value={`${informacoesSeo[1]}`}
-                          />
-                        </label>
-
-                        <label className="flex flex-col gap-2 text-zinc-200" htmlFor="titulo">
-                          Meta Keywords
-                          <input
-                            className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                            id="titulo"
-                            type="text"
-                            placeholder=""
-                            {...register("metakeywords")}
-                            value={`${informacoesSeo[2]}`}
-                          />
-                        </label>
-                      </fieldset>
-                    </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
+            ))}
 
+            {/* Botões para adicionar novo produto */}
+            <button
+              type="button"
+              onClick={addFormInstance}
+              className="self-end mb-10 py-2 px-10 border border-zinc-400 rounded-lg text-zinc-200 hover:bg-zinc-800"
+            >
+                Adicionar
+            </button>
+
+            {/* Botões de ação */}
             <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800 gap-8">
               <button
                 onClick={() => {
