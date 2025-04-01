@@ -966,8 +966,8 @@ export default function Home() {
 
     try {
       if (tipoCadastro === "planilha") {
-        console.log("Dados da Planilha:", todosOsProdutos);
-        //geraPlanilha(todosOsProdutos, "cadastro-bling");
+        //console.log("Dados da Planilha:", todosOsProdutos);
+        geraPlanilha(todosOsProdutos, "cadastro-bling");
       } else if (tipoCadastro === "bling") {
         //console.log("Dados do Bling:", dadosBling);
         // saveProdutos(dadosBling);
