@@ -333,8 +333,7 @@ export default function Home() {
       cor_azul: "",
       metatitle: "",
       metadescription: "",
-      metakeywords: "",
-      codigo_all: false
+      metakeywords: ""
     });
     setTitulos(prev => [...prev, ""]);
   }
