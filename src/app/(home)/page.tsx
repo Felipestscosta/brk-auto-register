@@ -257,37 +257,6 @@ export default function Home() {
   const [data, setData] = useState<any[]>([]);
   const [titulos, setTitulos] = useState<string[]>([]);
 
-  //Integração IA para Geração de SEO
-  function geraSEO(tituloProduto: any) {
-    if (tituloProduto.length > 30) {
-      axios
-        .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCrzFpg0GtlbYO5ydvztSAEQtWD0GvOlc4", {
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Com base nesse título '${tituloProduto}', meta title, meta description e metakeywords(separados por vírgula). Sempre respeitando a quantidade de caracteres visto como boa prática em otimizações de SEO para e-commerces. Forneça as informacoes de formas simples, separando o valor de cada meta com o símbolo '|' , não deixe espaços em branco entre os separadores '|', não é necessário usar formatadores de markdown por exemplo '##' e '\n', e não é necessário colocar o nome da informação. É importante adicionar a marca de acordo com o nicho estabelecido nas meta keywords`,
-                },
-              ],
-            },
-          ],
-          systemInstruction: {
-            role: "user",
-            parts: [
-              {
-                text: "Somos uma empresa, e temos 3 principais marcas de atuação:\n\nBRK Agro: Atuamos principalmente com produtos voltados para pessoas do campo , como camisas, camisetas, botinas, bonés entre outros acessórios.\n\nBRK Fishing: Atuando mais no nicho de pescadores com venda de produtos como camisas, camisetas, bonés, botinas, varas, molinetes, carretilhas, caixas térmicas, tubenecks, black masks, iscas, anzóis entre outros acessórios para pesca.\n\nBRK Motors: Voltado mais para pessoas do nicho de motociclismo, que faz expedições e praticam esporte ao ar livre, vendendo produtos como camisas, camisetas, botinas, tubenecks, bonés e outros acessórios.",
-              },
-            ],
-          },
-        })
-        .then((data: any) => {
-          let retornoDadosIa = data.data.candidates[0].content.parts[0].text;
-          setInformacoesSeo(retornoDadosIa.split("|"));
-        });
-    }
-  }
-
   async function getNumeroEans() {
     const dataNumeroEans = await axios.get('api/ean?quantidadeeans=true');
     setQuantidadeEans(dataNumeroEans ? dataNumeroEans.data.count : '0')
