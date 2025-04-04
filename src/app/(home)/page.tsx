@@ -11,24 +11,28 @@ import axios from "axios";
 import Cloudflare from 'cloudflare'
 
 type esquemaDeDadosFormulario = {
-  codigo: string;
-  titulo: string;
-  estoque: string;
-  preco: string;
-  imagens: any;
+  forms: {
+    codigo: string;
+    titulo: string;
+    estoque: string;
+    preco: string;
+    imagens: any;
 
-  tamanho_masculino: boolean;
-  tamanho_feminino: boolean;
-  tamanho_infantil: boolean;
+    tamanho_masculino: boolean;
+    tamanho_feminino: boolean;
+    tamanho_infantil: boolean;
 
-  cor_branco: string;
-  cor_preto: string;
-  cor_azul: string;
+    cor_branco: string;
+    cor_preto: string;
+    cor_azul: string;
 
-  metatitle: string;
-  metadescription: string;
-  metakeywords: string;
-}[];
+    metatitle: string;
+    metadescription: string;
+    metakeywords: string;
+  }[];
+  codigo_all: boolean;
+  titulo_all: string;
+};
 
 const descricaoCamisaPorLoja = 
   {
@@ -244,7 +248,6 @@ const client = new Cloudflare({
 export default function Home() {
   const [files, setFiles] = useState<any[]>([]);
   const [quantidadeEans, setQuantidadeEans] = useState(0);
-  const [informacoesSeo, setInformacoesSeo] = useState(["", "", ""]);
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
   const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [tipoCadastro, setTipoCadastro] = useState("");
@@ -361,7 +364,8 @@ export default function Home() {
       cor_azul: "",
       metatitle: "",
       metadescription: "",
-      metakeywords: ""
+      metakeywords: "",
+      codigo_all: false
     });
     setTitulos(prev => [...prev, ""]);
   }
@@ -392,6 +396,7 @@ export default function Home() {
         tamanho_masculino: true,
         tamanho_feminino: true,
         tamanho_infantil: true,
+        codigo_all: false
       }]
     }
   });
@@ -402,7 +407,7 @@ export default function Home() {
   });
 
   const onSubmit: SubmitHandler<{forms: esquemaDeDadosFormulario}> = async (data) => {
-    setCarregando(true);
+    //setCarregando(true);
 
     var produtosEVariacoesUnidas = [];
     for(const dadosFormulario of data.forms){
@@ -962,10 +967,42 @@ export default function Home() {
     }
     
     var todosOsProdutos = produtosEVariacoesUnidas.flat();
-    console.log(todosOsProdutos);
+
+    //remover posicao do array que contem o valor do codigo_pai = ""
+    if(data.forms.codigo_all) {
+
+      var produtosDesmembrados = [];
+      var produtoPaiAll = todosOsProdutos[0];
+
+      todosOsProdutos = todosOsProdutos.filter((produto) => produto.codigo_pai !== "" && !produto.codigo.includes("I") || !produto.codigo.includes("BL"));
+      todosOsProdutos[0].codigo = `${todosOsProdutos[0].codigo}_ALL`;
+      todosOsProdutos[0].descricao = data.forms.titulo_all;
+
+      todosOsProdutos.map((produto, index) => {
+        return (index !== 0) && produto.codigo_pai !== ""
+          ? produto.codigo_pai = todosOsProdutos[0].codigo
+          : null;
+      });
+      
+      produtosDesmembrados.push(...todosOsProdutos.filter((produto) => produto.codigo_pai !== ""));  
+
+      //inserir produtopai no inicio do array
+      produtosDesmembrados.unshift(produtoPaiAll);
+
+      todosOsProdutos = produtosDesmembrados;
+      //console.log("Produtos Desmembrados:", produtosDesmembrados);
+
+      //console.log("Tipo All:", produtosDesmembrados);
+      setTipoCadastro("codigo_all");
+      
+    }else{
+      setTipoCadastro("planilha");
+    }
+
+    console.log(todosOsProdutos)
 
     try {
-      if (tipoCadastro === "planilha") {
+      if (tipoCadastro === "planilha" || tipoCadastro === "codigo_all") {
         //console.log("Dados da Planilha:", todosOsProdutos);
         geraPlanilha(todosOsProdutos, "cadastro-bling");
       } else if (tipoCadastro === "bling") {
@@ -1240,11 +1277,11 @@ export default function Home() {
         <div className="flex justify-center items-center container z-10">
           <form className="flex w-full flex-col justify-center items-center" onSubmit={handleSubmit(onSubmit)}>            
             {fields.map((field, index) => (
-              <div key={field.id} className="w-full max-sm:mx-4 mb-10 border-b border-zinc-800 pb-10">
+              <div key={field.id} className={`w-full max-sm:mx-4 mb-10 ${index%2 === 0 ? "border-b-2 bg-zinc-100/5 backdrop-blur-[5px] border-zinc-600" : ""} rounded-lg p-10`}>
                 <button
                   type="button"
                   onClick={() => removeFormInstance(index)}
-                  className={`${fields.length === 1 ? "hidden" : "flex"} text-red-400 hover:text-red-300 text-sm items-center gap-1`}
+                  className={`${fields.length === 1 ? "hidden" : "flex"} w-full text-red-400 hover:text-red-300 text-sm gap-1 justify-end`}
                 >
                   <span>Remover</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1400,7 +1437,23 @@ export default function Home() {
             </button>
 
             {/* Botões de ação */}
-            <div className="flex container items-center justify-center mt-10 pt-10 py-2 px-10 border-t border-zinc-800 gap-8">
+            <div className="flex container items-center justify-between mt-10 pt-10 py-2 border-t border-zinc-800 gap-8">
+              <div className="flex gap-10">
+                <label className="flex gap-2 items-center justify-center cursor-pointer" htmlFor="codigo_all">
+                  <input
+                    id="codigo_all" 
+                    type="checkbox" 
+                    className="w-4 h-4" 
+                    onClick={(e) => {
+                      setTipoCadastro(e.target.checked === true ? "codigo_all" : "planilha");
+                    }}
+                    {...register(`forms.codigo_all`)}
+                  />
+                  <span className="text-zinc-200">All</span>
+                </label>
+                <input className={`${tipoCadastro === "codigo_all" ? "flex" : "hidden" } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`} type="text" {...register(`forms.titulo_all`)} placeholder="Título do produto ALL"/>
+              </div>
+
               <button
                 onClick={() => {
                   setTipoCadastro("planilha");
@@ -1438,6 +1491,27 @@ export default function Home() {
                   </span>
                 )}
               </button>
+              
+              <button
+                onClick={() => {
+                  setTipoCadastro("bling");
+                }}
+                type="submit"
+                className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+              >
+                {carregando ? (
+                  <span className="flex justify-center items-center">
+                    <CircleNotch size={20} className="animate-spin mr-4" />
+                    Processando...
+                  </span>
+                ) : (
+                  <span className="flex justify-center items-center gap-2">
+                    <ListPlus size={32} /> Cadastrar no Bling
+                  </span>
+                )}
+              </button>
+              
+              
             </div>
 
           </form>
