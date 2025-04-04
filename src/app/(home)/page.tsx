@@ -324,7 +324,7 @@ export default function Home() {
       titulo: "",
       estoque: "",
       preco: "",
-      imagens: null,
+      imagens: [],
       tamanho_masculino: true,
       tamanho_feminino: true,
       tamanho_infantil: true,
@@ -349,23 +349,26 @@ export default function Home() {
   };
 
   //Captura do Formulário
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    control
-  } = useForm<{forms: esquemaDeDadosFormulario}>({
-    defaultValues:{
+  const { register, control, handleSubmit, formState: { errors } } = useForm<esquemaDeDadosFormulario>({
+    defaultValues: {
       forms: [{
         codigo: "",
         titulo: "",
         estoque: "",
-        preco:"159,90",
+        preco: "",
+        imagens: [],
         tamanho_masculino: true,
         tamanho_feminino: true,
         tamanho_infantil: true,
-        codigo_all: false
-      }]
+        cor_branco: "",
+        cor_preto: "",
+        cor_azul: "",
+        metatitle: "",
+        metadescription: "",
+        metakeywords: ""
+      }],
+      codigo_all: false,
+      titulo_all: ""
     }
   });
 
@@ -374,7 +377,7 @@ export default function Home() {
     name: "forms"
   });
 
-  const onSubmit: SubmitHandler<{forms: esquemaDeDadosFormulario}> = async (data) => {
+  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (data) => {
     //setCarregando(true);
 
     var produtosEVariacoesUnidas = [];
@@ -937,14 +940,14 @@ export default function Home() {
     var todosOsProdutos = produtosEVariacoesUnidas.flat();
 
     //remover posicao do array que contem o valor do codigo_pai = ""
-    if(data.forms.codigo_all) {
+    if(data.codigo_all) {
 
       var produtosDesmembrados = [];
       var produtoPaiAll = todosOsProdutos[0];
 
       todosOsProdutos = todosOsProdutos.filter((produto) => produto.codigo_pai !== "" && !produto.codigo.includes("I") || !produto.codigo.includes("BL"));
       todosOsProdutos[0].codigo = `${todosOsProdutos[0].codigo}_ALL`;
-      todosOsProdutos[0].descricao = data.forms.titulo_all;
+      todosOsProdutos[0].descricao = data.titulo_all;
 
       todosOsProdutos.map((produto, index) => {
         return (index !== 0) && produto.codigo_pai !== ""
@@ -1412,14 +1415,13 @@ export default function Home() {
                     id="codigo_all" 
                     type="checkbox" 
                     className="w-4 h-4" 
-                    onClick={(e) => {
-                      setTipoCadastro(e.target.checked === true ? "codigo_all" : "planilha");
-                    }}
-                    {...register(`forms.codigo_all`)}
+                    {...register(`codigo_all`, {
+                      onChange: (e) => setTipoCadastro(e.target.checked ? "codigo_all" : "planilha")
+                    })}
                   />
                   <span className="text-zinc-200">All</span>
                 </label>
-                <input className={`${tipoCadastro === "codigo_all" ? "flex" : "hidden" } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`} type="text" {...register(`forms.titulo_all`)} placeholder="Título do produto ALL"/>
+                <input className={`${tipoCadastro === "codigo_all" ? "flex" : "hidden" } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`} type="text" {...register(`titulo_all`)} placeholder="Título do produto ALL"/>
               </div>
 
               <button
