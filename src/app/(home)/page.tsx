@@ -257,37 +257,6 @@ export default function Home() {
   const [data, setData] = useState<any[]>([]);
   const [titulos, setTitulos] = useState<string[]>([]);
 
-  //Integração IA para Geração de SEO
-  function geraSEO(tituloProduto: any) {
-    if (tituloProduto.length > 30) {
-      axios
-        .post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyCrzFpg0GtlbYO5ydvztSAEQtWD0GvOlc4", {
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  text: `Com base nesse título '${tituloProduto}', meta title, meta description e metakeywords(separados por vírgula). Sempre respeitando a quantidade de caracteres visto como boa prática em otimizações de SEO para e-commerces. Forneça as informacoes de formas simples, separando o valor de cada meta com o símbolo '|' , não deixe espaços em branco entre os separadores '|', não é necessário usar formatadores de markdown por exemplo '##' e '\n', e não é necessário colocar o nome da informação. É importante adicionar a marca de acordo com o nicho estabelecido nas meta keywords`,
-                },
-              ],
-            },
-          ],
-          systemInstruction: {
-            role: "user",
-            parts: [
-              {
-                text: "Somos uma empresa, e temos 3 principais marcas de atuação:\n\nBRK Agro: Atuamos principalmente com produtos voltados para pessoas do campo , como camisas, camisetas, botinas, bonés entre outros acessórios.\n\nBRK Fishing: Atuando mais no nicho de pescadores com venda de produtos como camisas, camisetas, bonés, botinas, varas, molinetes, carretilhas, caixas térmicas, tubenecks, black masks, iscas, anzóis entre outros acessórios para pesca.\n\nBRK Motors: Voltado mais para pessoas do nicho de motociclismo, que faz expedições e praticam esporte ao ar livre, vendendo produtos como camisas, camisetas, botinas, tubenecks, bonés e outros acessórios.",
-              },
-            ],
-          },
-        })
-        .then((data: any) => {
-          let retornoDadosIa = data.data.candidates[0].content.parts[0].text;
-          setInformacoesSeo(retornoDadosIa.split("|"));
-        });
-    }
-  }
-
   async function getNumeroEans() {
     const dataNumeroEans = await axios.get('api/ean?quantidadeeans=true');
     setQuantidadeEans(dataNumeroEans ? dataNumeroEans.data.count : '0')
@@ -355,7 +324,7 @@ export default function Home() {
       titulo: "",
       estoque: "",
       preco: "",
-      imagens: null,
+      imagens: [],
       tamanho_masculino: true,
       tamanho_feminino: true,
       tamanho_infantil: true,
@@ -364,8 +333,7 @@ export default function Home() {
       cor_azul: "",
       metatitle: "",
       metadescription: "",
-      metakeywords: "",
-      codigo_all: false
+      metakeywords: ""
     });
     setTitulos(prev => [...prev, ""]);
   }
@@ -381,23 +349,26 @@ export default function Home() {
   };
 
   //Captura do Formulário
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    control
-  } = useForm<{forms: esquemaDeDadosFormulario}>({
-    defaultValues:{
+  const { register, control, handleSubmit, formState: { errors } } = useForm<esquemaDeDadosFormulario>({
+    defaultValues: {
       forms: [{
         codigo: "",
         titulo: "",
         estoque: "",
-        preco:"159,90",
+        preco: "",
+        imagens: [],
         tamanho_masculino: true,
         tamanho_feminino: true,
         tamanho_infantil: true,
-        codigo_all: false
-      }]
+        cor_branco: "",
+        cor_preto: "",
+        cor_azul: "",
+        metatitle: "",
+        metadescription: "",
+        metakeywords: ""
+      }],
+      codigo_all: false,
+      titulo_all: ""
     }
   });
 
@@ -406,7 +377,7 @@ export default function Home() {
     name: "forms"
   });
 
-  const onSubmit: SubmitHandler<{forms: esquemaDeDadosFormulario}> = async (data) => {
+  const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (data) => {
     //setCarregando(true);
 
     var produtosEVariacoesUnidas = [];
@@ -969,14 +940,14 @@ export default function Home() {
     var todosOsProdutos = produtosEVariacoesUnidas.flat();
 
     //remover posicao do array que contem o valor do codigo_pai = ""
-    if(data.forms.codigo_all) {
+    if(data.codigo_all) {
 
       var produtosDesmembrados = [];
       var produtoPaiAll = todosOsProdutos[0];
 
       todosOsProdutos = todosOsProdutos.filter((produto) => produto.codigo_pai !== "" && !produto.codigo.includes("I") || !produto.codigo.includes("BL"));
       todosOsProdutos[0].codigo = `${todosOsProdutos[0].codigo}_ALL`;
-      todosOsProdutos[0].descricao = data.forms.titulo_all;
+      todosOsProdutos[0].descricao = data.titulo_all;
 
       todosOsProdutos.map((produto, index) => {
         return (index !== 0) && produto.codigo_pai !== ""
@@ -1444,14 +1415,13 @@ export default function Home() {
                     id="codigo_all" 
                     type="checkbox" 
                     className="w-4 h-4" 
-                    onClick={(e) => {
-                      setTipoCadastro(e.target.checked === true ? "codigo_all" : "planilha");
-                    }}
-                    {...register(`forms.codigo_all`)}
+                    {...register(`codigo_all`, {
+                      onChange: (e) => setTipoCadastro(e.target.checked ? "codigo_all" : "planilha")
+                    })}
                   />
                   <span className="text-zinc-200">All</span>
                 </label>
-                <input className={`${tipoCadastro === "codigo_all" ? "flex" : "hidden" } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`} type="text" {...register(`forms.titulo_all`)} placeholder="Título do produto ALL"/>
+                <input className={`${tipoCadastro === "codigo_all" ? "flex" : "hidden" } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`} type="text" {...register(`titulo_all`)} placeholder="Título do produto ALL"/>
               </div>
 
               <button
