@@ -968,7 +968,7 @@ export default function Home() {
         //   : null;
       });
 
-      console.log("Produtos tratados:", todosOsProdutos);
+      //console.log("Produtos tratados:", todosOsProdutos);
 
       produtosDesmembrados.push(
         ...todosOsProdutos.filter((produto) => produto.codigo_pai !== "")
@@ -986,12 +986,12 @@ export default function Home() {
       setTipoCadastro("planilha");
     }
 
-    console.log(todosOsProdutos);
+    //console.log(todosOsProdutos);
 
     try {
       if (tipoCadastro === "planilha" || tipoCadastro === "is_all") {
         //console.log("Dados da Planilha:", todosOsProdutos);
-        //geraPlanilha(todosOsProdutos, "cadastro-bling");
+        geraPlanilha(todosOsProdutos, "cadastro-bling");
       } else if (tipoCadastro === "bling") {
         //console.log("Dados do Bling:", dadosBling);
         // saveProdutos(dadosBling);
