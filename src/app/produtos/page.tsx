@@ -3,6 +3,7 @@
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type Produto = {
   codigo: string;
@@ -49,7 +50,7 @@ export default function Produtos() {
 
             <div className="relative flex bg-slate-200 p-4 box-image rounded-3xl translate-y-20">
               <span className="absolute -top-6 -right-4 bg-slate-200 text-slate-700 p-[.8rem] font-bold border-2 rounded-full shadow-lg">50</span>
-              <img className="w-48" src="https://res.cloudinary.com/daruxsllg/image/upload/v1721918032/brk/1_xevdbj.png" alt="" />
+              <Image className="w-48" src="https://res.cloudinary.com/daruxsllg/image/upload/v1721918032/brk/1_xevdbj.png" alt="" />
             </div>
 
             <div className="flex flex-col justify-center items-center text-center p-8 pt-24 pb-24 border border-slate-200/25 rounded-lg">
@@ -140,7 +141,7 @@ export default function Produtos() {
 
             <div className="relative flex bg-[url('https://res.cloudinary.com/daruxsllg/image/upload/v1722015735/brk/bc9oonibwjvfotx1ltc6.jpg')] p-4 box-image rounded-3xl translate-y-20">
               <span className="absolute -top-6 -right-4 bg-slate-200 text-slate-700 p-[.8rem] font-bold border-2 rounded-full shadow-lg">50</span>
-              <img className="w-48 rounded-lg" src="https://res.cloudinary.com/daruxsllg/image/upload/v1722015735/brk/bc9oonibwjvfotx1ltc6.jpg" alt="" />
+              <Image className="w-48 rounded-lg" src="https://res.cloudinary.com/daruxsllg/image/upload/v1722015735/brk/bc9oonibwjvfotx1ltc6.jpg" alt="" />
             </div>
 
             <div className="flex flex-col justify-center items-center text-center p-8 pt-24 pb-24 border border-green-400 rounded-lg shadow-green-400/10 shadow-md">
@@ -231,7 +232,7 @@ export default function Produtos() {
 
             <div className="relative flex bg-slate-200 p-4 box-image rounded-3xl translate-y-20">
               <span className="absolute -top-6 -right-4 bg-slate-200 text-slate-700 p-[.8rem] font-bold border-2 rounded-full shadow-lg">50</span>
-              <img className="w-48 rounded-lg" src="https://res.cloudinary.com/daruxsllg/image/upload/v1722016097/brk/syzx0h99stq5qh6xyrls.jpg" alt="" />
+              <Image className="w-48 rounded-lg" src="https://res.cloudinary.com/daruxsllg/image/upload/v1722016097/brk/syzx0h99stq5qh6xyrls.jpg" alt="" />
             </div>
 
             <div className="flex flex-col justify-center items-center text-center p-8 pt-24 pb-24 border border-red-400 rounded-lg shadow-red-400/10 shadow-md bg-[#1B0A0A]">
