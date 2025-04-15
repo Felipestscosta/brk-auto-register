@@ -945,15 +945,25 @@ export default function Home() {
       var produtosDesmembrados = [];
       var produtoPaiAll = todosOsProdutos[0];
 
-      todosOsProdutos = todosOsProdutos.filter((produto) => produto.codigo_pai !== "" && !produto.codigo.includes("I") || !produto.codigo.includes("BL"));
-      todosOsProdutos[0].codigo = `${todosOsProdutos[0].codigo}_ALL`;
-      todosOsProdutos[0].descricao = data.titulo_all;
+      todosOsProdutos = todosOsProdutos.filter((produto) => 
+        produto.codigo_pai !== "" 
+        && !produto.codigo.includes("I") 
+        || !produto.codigo.includes("BL"));
+
+      produtoPaiAll.codigo = `ALL_${produtoPaiAll.codigo}`;
+      produtoPaiAll.descricao = data.titulo_all;
 
       todosOsProdutos.map((produto, index) => {
-        return (index !== 0) && produto.codigo_pai !== ""
-          ? produto.codigo_pai = todosOsProdutos[0].codigo
-          : null;
+        if(produto.codigo_pai !== "") {
+          produto.codigo_pai = produtoPaiAll.codigo;
+          produto.codigo = `ALL_${produto.codigo}`
+        }
+        // return (index !== 0) && produto.codigo_pai !== ""
+        //   ? produto.codigo_pai = todosOsProdutos[0].codigo
+        //   : null;
       });
+
+      console.log("Produtos tratados:", todosOsProdutos)
       
       produtosDesmembrados.push(...todosOsProdutos.filter((produto) => produto.codigo_pai !== ""));  
 
