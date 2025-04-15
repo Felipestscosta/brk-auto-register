@@ -1,5 +1,16 @@
 "use client";
-import { Barn, BaseballCap, CircleNotch, Empty, FileArrowDown, FishSimple, Hoodie, ListPlus, MicrosoftExcelLogo, Motorcycle, Tree, TShirt, UploadSimple } from "@phosphor-icons/react";
+import {
+  Barn,
+  BaseballCap,
+  CircleNotch,
+  Empty,
+  FishSimple,
+  Hoodie,
+  ListPlus,
+  MicrosoftExcelLogo,
+  Motorcycle,
+  Tree
+} from "@phosphor-icons/react";
 import { SubmitHandler, useForm, useFieldArray } from "react-hook-form";
 import CurrencyInput from "react-currency-input-field";
 
@@ -8,7 +19,8 @@ import { useDropzone } from "react-dropzone";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
-import Cloudflare from 'cloudflare'
+import Cloudflare from "cloudflare";
+import { motion, AnimatePresence } from "framer-motion";
 
 type esquemaDeDadosFormulario = {
   forms: {
@@ -17,30 +29,26 @@ type esquemaDeDadosFormulario = {
     estoque: string;
     preco: string;
     imagens: any;
+    cor_modelo_all: string;
 
     tamanho_masculino: boolean;
     tamanho_feminino: boolean;
     tamanho_infantil: boolean;
 
-    cor_branco: string;
-    cor_preto: string;
-    cor_azul: string;
-
     metatitle: string;
     metadescription: string;
     metakeywords: string;
   }[];
-  codigo_all: boolean;
+  is_all: boolean;
+  codigo_all: string;
   titulo_all: string;
 };
 
-const descricaoCamisaPorLoja = 
-  {
-      agro: `<h2>[titulo-produto]</h2><p>As Camisas Agro Brk são uma inovação no segmento ao unir<span> </span><strong>qualidade, estilo e performance</strong><span> </span>em um só produto. Confeccionadas com tecido exclusivo<span> </span><strong>XTech Pro®</strong>, proporcionam<span> </span><strong>conforto, proteção solar de UV50+, antiodor e antibacteriano</strong>.<p>Vista-se com uma Camisa Brk Agro com cores vibrantes que<span> </span><strong>não desbota, não precisa passar, tem costura reforçada e secagem ultra rápida.</strong><p><strong>Atente-se para alguns cuidados básicos necessários para conservar as propriedades do tecido e a eficácia da tecnologia que usamos:</strong><ul><li>Lavar em água fria e com detergente líquido;<li>Após a lavagem, deixar secar na sombra;<li>Não utilizar máquina de secar e nem lavagem a seco;<li>Não passar sua camisa com ferro elétrico.</ul><p><strong>Confira alguns diferenciais da Camisa Brk:</strong><ul><li>Costura reforçada com tecnologia;<li>Tecido XTech Pro® Exclusivo;<li>Antiodor e Antibacteriano;<li>Proteção Solar UV50+;<li>Estampas exclusivas.<li>Garantia de 1 ano;<li>Troca Fácil;</ul>`,
-      fishing: `<h2>[titulo-produto]</h2><p>As Camisas de Pesca Brk são a combinação perfeita de <strong>qualidade, estilo e alta performance</strong> para quem ama atividades ao ar livre. Produzidas com o inovador tecido exclusivo <strong>XTech Pro®</strong>, oferecem <strong>conforto, proteção solar UV50+, tecnologia antiodor e antibacteriana</strong>, garantindo uma experiência única durante suas pescarias.<h3>Cuidados essenciais para manter sua camisa impecável:</h3><ul><li>Lave em água fria utilizando detergente líquido;<li>Deixe secar à sombra após a lavagem;<li>Evite usar máquina de secar ou lavagem a seco;<li>Não passe a camisa com ferro elétrico.</ul><h3>Diferenciais das Camisas de Pesca Brk:</h3><ul><li>Costura reforçada com tecnologia;<li>Exclusivo tecido <strong>XTech Pro®</strong>;<li>Tecnologia <strong>antiodor e antibacteriana</strong>;<li>Proteção Solar <strong>UV50+</strong> homologada;<li>Estampas exclusivas e estilosas;<li>Garantia de 1 ano;<li>Troca fácil e descomplicada.</ul><p><strong>Ideal para pescarias e aventuras ao ar livre</strong>, a Camisa de Pesca Brk é a escolha certa para quem valoriza conforto, tecnologia e estilo em um só produto. 🌊🎣`,
-      motors: `<h2>[titulo-produto]</h2><p>As Camisas de Motociclismo Brk são a combinação perfeita de <strong>qualidade, estilo e alta performance</strong> para quem ama encarar as estradas e aventuras em duas rodas. Produzidas com o inovador tecido exclusivo <strong>XTech Pro®</strong>, oferecem <strong>conforto, proteção solar UV50+, tecnologia antiodor e antibacteriana</strong>, garantindo uma experiência única durante suas viagens e trajetos de moto.<h3>Cuidados essenciais para manter sua camisa impecável:</h3><ul><li>Lave em água fria utilizando detergente líquido;<li>Deixe secar à sombra após a lavagem;<li>Evite usar máquina de secar ou lavagem a seco;<li>Não passe a camisa com ferro elétrico.</ul><h3>Diferenciais das Camisas de Motociclismo Brk:</h3><ul><li>Costura reforçada com tecnologia;<li>Exclusivo tecido <strong>XTech Pro®</strong>;<li>Tecnologia <strong>antiodor e antibacteriana</strong>;<li>Proteção Solar <strong>UV50+</strong> homologada;<li>Estampas exclusivas e estilosas;<li>Garantia de 1 ano;<li>Troca fácil e descomplicada.</ul><p><strong>Ideal para motociclismo e aventuras ao ar livre</strong>, a Camisa Motociclismo Brk é a escolha certa para quem valoriza conforto, tecnologia e estilo em um só produto. 🏍️🔥`
-  };
-
+const descricaoCamisaPorLoja = {
+  agro: `<h2>[titulo-produto]</h2><p>As Camisas Agro Brk são uma inovação no segmento ao unir<span> </span><strong>qualidade, estilo e performance</strong><span> </span>em um só produto. Confeccionadas com tecido exclusivo<span> </span><strong>XTech Pro®</strong>, proporcionam<span> </span><strong>conforto, proteção solar de UV50+, antiodor e antibacteriano</strong>.<p>Vista-se com uma Camisa Brk Agro com cores vibrantes que<span> </span><strong>não desbota, não precisa passar, tem costura reforçada e secagem ultra rápida.</strong><p><strong>Atente-se para alguns cuidados básicos necessários para conservar as propriedades do tecido e a eficácia da tecnologia que usamos:</strong><ul><li>Lavar em água fria e com detergente líquido;<li>Após a lavagem, deixar secar na sombra;<li>Não utilizar máquina de secar e nem lavagem a seco;<li>Não passar sua camisa com ferro elétrico.</ul><p><strong>Confira alguns diferenciais da Camisa Brk:</strong><ul><li>Costura reforçada com tecnologia;<li>Tecido XTech Pro® Exclusivo;<li>Antiodor e Antibacteriano;<li>Proteção Solar UV50+;<li>Estampas exclusivas.<li>Garantia de 1 ano;<li>Troca Fácil;</ul>`,
+  fishing: `<h2>[titulo-produto]</h2><p>As Camisas de Pesca Brk são a combinação perfeita de <strong>qualidade, estilo e alta performance</strong> para quem ama atividades ao ar livre. Produzidas com o inovador tecido exclusivo <strong>XTech Pro®</strong>, oferecem <strong>conforto, proteção solar UV50+, tecnologia antiodor e antibacteriana</strong>, garantindo uma experiência única durante suas pescarias.<h3>Cuidados essenciais para manter sua camisa impecável:</h3><ul><li>Lave em água fria utilizando detergente líquido;<li>Deixe secar à sombra após a lavagem;<li>Evite usar máquina de secar ou lavagem a seco;<li>Não passe a camisa com ferro elétrico.</ul><h3>Diferenciais das Camisas de Pesca Brk:</h3><ul><li>Costura reforçada com tecnologia;<li>Exclusivo tecido <strong>XTech Pro®</strong>;<li>Tecnologia <strong>antiodor e antibacteriana</strong>;<li>Proteção Solar <strong>UV50+</strong> homologada;<li>Estampas exclusivas e estilosas;<li>Garantia de 1 ano;<li>Troca fácil e descomplicada.</ul><p><strong>Ideal para pescarias e aventuras ao ar livre</strong>, a Camisa de Pesca Brk é a escolha certa para quem valoriza conforto, tecnologia e estilo em um só produto. 🌊🎣`,
+  motors: `<h2>[titulo-produto]</h2><p>As Camisas de Motociclismo Brk são a combinação perfeita de <strong>qualidade, estilo e alta performance</strong> para quem ama encarar as estradas e aventuras em duas rodas. Produzidas com o inovador tecido exclusivo <strong>XTech Pro®</strong>, oferecem <strong>conforto, proteção solar UV50+, tecnologia antiodor e antibacteriana</strong>, garantindo uma experiência única durante suas viagens e trajetos de moto.<h3>Cuidados essenciais para manter sua camisa impecável:</h3><ul><li>Lave em água fria utilizando detergente líquido;<li>Deixe secar à sombra após a lavagem;<li>Evite usar máquina de secar ou lavagem a seco;<li>Não passe a camisa com ferro elétrico.</ul><h3>Diferenciais das Camisas de Motociclismo Brk:</h3><ul><li>Costura reforçada com tecnologia;<li>Exclusivo tecido <strong>XTech Pro®</strong>;<li>Tecnologia <strong>antiodor e antibacteriana</strong>;<li>Proteção Solar <strong>UV50+</strong> homologada;<li>Estampas exclusivas e estilosas;<li>Garantia de 1 ano;<li>Troca fácil e descomplicada.</ul><p><strong>Ideal para motociclismo e aventuras ao ar livre</strong>, a Camisa Motociclismo Brk é a escolha certa para quem valoriza conforto, tecnologia e estilo em um só produto. 🏍️🔥`,
+};
 
 const relacaoDeTamanhos = [
   {
@@ -73,7 +81,7 @@ const relacaoDeTamanhos = [
         {
           nome: "G2",
           sigla_camisa: "G2",
-        }
+        },
       ],
     },
     feminino: {
@@ -143,95 +151,6 @@ const relacaoDeTamanhos = [
   },
 ];
 
-const relacaoDeCores = [
-  {
-    branco: {
-      tamanhos: [
-        {
-          cor_nome: "Branco",
-          tamanho: "P",
-        },
-        {
-          cor_nome: "Branco",
-          tamanho: "M",
-        },
-        {
-          cor_nome: "Branco",
-          tamanho: "G",
-        },
-        {
-          cor_nome: "Branco",
-          tamanho: "GG",
-        },
-        {
-          cor_nome: "Branco",
-          tamanho: "G1",
-        },
-        {
-          cor_nome: "Branco",
-          tamanho: "G2",
-        },
-      ],
-    },
-    preto: {
-      tamanhos: [
-        {
-          cor_nome: "Preto",
-          tamanho: "P",
-        },
-        {
-          cor_nome: "Preto",
-          tamanho: "M",
-        },
-        {
-          cor_nome: "Preto",
-          tamanho: "G",
-        },
-        {
-          cor_nome: "Preto",
-          tamanho: "GG",
-        },
-        {
-          cor_nome: "Preto",
-          tamanho: "G1",
-        },
-        {
-          cor_nome: "Preto",
-          tamanho: "G2",
-        },
-      ],
-    },
-    azul: {
-      tamanhos: [
-        {
-          cor_nome: "Azul",
-          tamanho: "P",
-        },
-        {
-          cor_nome: "Azul",
-          tamanho: "M",
-        },
-        {
-          cor_nome: "Azul",
-          tamanho: "G",
-        },
-        {
-          cor_nome: "Azul",
-          tamanho: "GG",
-        },
-        {
-          cor_nome: "Azul",
-          tamanho: "G1",
-        },
-        {
-          cor_nome: "Azul",
-          tamanho: "G2",
-        },
-      ],
-    },
-  },
-];
-
 const precos = {
   camisetaAlgodao: 119.9,
   camisa: 159.9,
@@ -249,7 +168,6 @@ export default function Home() {
   const [files, setFiles] = useState<any[]>([]);
   const [quantidadeEans, setQuantidadeEans] = useState(0);
   const [tipoDeProduto, setTipoDeProduto] = useState("camisa");
-  const [tipoAlgodao, setTipoAlgodao] = useState("comalgodao");
   const [tipoCadastro, setTipoCadastro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [usaEan, setUsaEan] = useState(false);
@@ -258,13 +176,13 @@ export default function Home() {
   const [titulos, setTitulos] = useState<string[]>([]);
 
   async function getNumeroEans() {
-    const dataNumeroEans = await axios.get('api/ean?quantidadeeans=true');
-    setQuantidadeEans(dataNumeroEans ? dataNumeroEans.data.count : '0')
+    const dataNumeroEans = await axios.get("api/ean?quantidadeeans=true");
+    setQuantidadeEans(dataNumeroEans ? dataNumeroEans.data.count : "0");
   }
 
   //Captura e Armazena o Token do Bling
   async function getToken() {
-      return await axios.get(`/api/bling-token`);
+    return await axios.get(`/api/bling-token`);
   }
 
   useEffect(() => {
@@ -274,13 +192,15 @@ export default function Home() {
   });
 
   //Salva Produto no Bling
-  async function saveProdutos(data: any) {  
-
+  async function saveProdutos(data: any) {
     const retornoObtemToken = await getToken();
     const token = retornoObtemToken.data[0].token;
     // const token = 'bc12a4341494c9cc8b4652d250d629320cfbb737';
 
-    const retornoCadastroProduto: any = await axios.post(`/api/bling-produtos?token=${token}`, data);
+    const retornoCadastroProduto: any = await axios.post(
+      `/api/bling-produtos?token=${token}`,
+      data
+    );
     const variacoes = retornoCadastroProduto.data.variacoes;
     const quantidadeVariacoes = Object.keys(variacoes).length;
 
@@ -288,30 +208,39 @@ export default function Home() {
       for (let i = 0; i < quantidadeVariacoes; i++) {
         const variacao = variacoes[i];
         try {
-          if (!variacao.nomeVariacao.includes("G3") && !variacao.nomeVariacao.includes("G4")) {
-            await axios.post(`/api/bling-estoques?token=${token}`, { id: variacao.id });
+          if (
+            !variacao.nomeVariacao.includes("G3") &&
+            !variacao.nomeVariacao.includes("G4")
+          ) {
+            await axios.post(`/api/bling-estoques?token=${token}`, {
+              id: variacao.id,
+            });
           }
         } catch (error) {
-          console.error(`Erro na requisição para variação ${variacao.id}:`, error);
+          console.error(
+            `Erro na requisição para variação ${variacao.id}:`,
+            error
+          );
         }
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
     } else {
-      axios.post(`/api/bling-estoques?token=${token}`, { id: retornoCadastroProduto.idProduto });
+      axios.post(`/api/bling-estoques?token=${token}`, {
+        id: retornoCadastroProduto.idProduto,
+      });
     }
 
     if (retornoCadastroProduto.status === 201) {
       alert("Produto Cadastrado com sucesso 🚀");
       setCarregando(false);
     }
-      
   }
 
   //Converte arquivo de Imagem para Base64 para subir no Imgur
-  function fileToBase64(file:any) {
+  function fileToBase64(file: any) {
     return new Promise((resolve, reject) => {
       const reader: any = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]); // Remove o cabeçalho "data:image/png;base64,"
+      reader.onload = () => resolve(reader.result.split(",")[1]); // Remove o cabeçalho "data:image/png;base64,"
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
@@ -323,20 +252,18 @@ export default function Home() {
       codigo: "",
       titulo: "",
       estoque: "",
-      preco: "",
+      preco: "R$159,90",
       imagens: [],
       tamanho_masculino: true,
       tamanho_feminino: true,
       tamanho_infantil: true,
-      cor_branco: "",
-      cor_preto: "",
-      cor_azul: "",
       metatitle: "",
       metadescription: "",
-      metakeywords: ""
+      metakeywords: "",
+      cor_modelo_all: "",
     });
-    setTitulos(prev => [...prev, ""]);
-  }
+    setTitulos((prev) => [...prev, ""]);
+  };
 
   // Função para remover grupo de formulário
   const removeFormInstance = (indexToRemove: number) => {
@@ -345,58 +272,63 @@ export default function Home() {
       return;
     }
     remove(indexToRemove);
-    setTitulos(prev => prev.filter((_, index) => index !== indexToRemove));
+    setTitulos((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   //Captura do Formulário
-  const { register, control, handleSubmit, formState: { errors } } = useForm<esquemaDeDadosFormulario>({
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<esquemaDeDadosFormulario>({
     defaultValues: {
-      forms: [{
-        codigo: "",
-        titulo: "",
-        estoque: "",
-        preco: "",
-        imagens: [],
-        tamanho_masculino: true,
-        tamanho_feminino: true,
-        tamanho_infantil: true,
-        cor_branco: "",
-        cor_preto: "",
-        cor_azul: "",
-        metatitle: "",
-        metadescription: "",
-        metakeywords: ""
-      }],
-      codigo_all: false,
-      titulo_all: ""
-    }
+      forms: [
+        {
+          codigo: "",
+          titulo: "",
+          estoque: "",
+          preco: "R$ 159,90",
+          imagens: [],
+          tamanho_masculino: true,
+          tamanho_feminino: true,
+          tamanho_infantil: true,
+          metatitle: "",
+          metadescription: "",
+          metakeywords: "",
+          cor_modelo_all: "",
+        },
+      ],
+      is_all: false,
+      codigo_all: "",
+      titulo_all: "",
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "forms"
+    name: "forms",
   });
 
   const onSubmit: SubmitHandler<esquemaDeDadosFormulario> = async (data) => {
     //setCarregando(true);
 
     var produtosEVariacoesUnidas = [];
-    for(const dadosFormulario of data.forms){
-      var nomeLoja = loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") 
-      || (loja === "fishing" && "Brk Fishing") 
-      || (loja === "motors" && "Brk Motors");
+    for (const dadosFormulario of data.forms) {
+      var nomeLoja =
+        loja === ""
+          ? "Brk"
+          : (loja === "agro" && "Brk Agro") ||
+            (loja === "fishing" && "Brk Fishing") ||
+            (loja === "motors" && "Brk Motors");
 
-      var descricaoProduto;;
+      var descricaoProduto;
 
       //Imagens Bling
-      let todasAsImagensBling:any = [];
+      let todasAsImagensBling: any = [];
       var imagensMasculinasBling: any = [];
       var imagensFemininasBling: any = [];
       var imagensInfantisBling: any = [];
-
-      var imagensCorBrancoBling: any = [];
-      var imagensCorPretoBling: any = [];
-      var imagensCorAzulBling: any = [];
 
       //Imagens Planilha
       let todasAsImagens = [];
@@ -404,15 +336,11 @@ export default function Home() {
       var imagensFemininas: any = [];
       var imagensInfantis: any = [];
 
-      var imagensCorBranco: any = [];
-      var imagensCorPreto: any = [];
-      var imagensCorAzul: any = [];
-
-      if (loja === ""){
-            alert("Selecione a loja Brk 😓");
-            setCarregando(false);
-            return
-      } 
+      if (loja === "") {
+        alert("Selecione a loja Brk 😓");
+        setCarregando(false);
+        return;
+      }
 
       // if (qtdFiles === 0){
       //   alert("Não esqueça as imagens 🖼️");
@@ -427,19 +355,23 @@ export default function Home() {
       //   return
       // }
 
-      var confirmadoPeloUsuario:any;
-      if(tipoCadastro === "bling"){
-        confirmadoPeloUsuario = confirm("⚠️Atenção! Tenha certeza de que os dados estão corretos. Quer mesmo continuar?")
+      var confirmadoPeloUsuario: any;
+      if (tipoCadastro === "bling") {
+        confirmadoPeloUsuario = confirm(
+          "⚠️Atenção! Tenha certeza de que os dados estão corretos. Quer mesmo continuar?"
+        );
       }
 
       //Continua se o usuário concorda que revisou os dados
-      (!confirmadoPeloUsuario) && setCarregando(false);
-      
-      if(confirmadoPeloUsuario ?? true){
+      !confirmadoPeloUsuario && setCarregando(false);
+
+      if (confirmadoPeloUsuario ?? true) {
         setCarregando(true);
 
-        var formularioFiles = Array.from(dadosFormulario.imagens as FileList || []);
-        
+        var formularioFiles = Array.from(
+          (dadosFormulario.imagens as FileList) || []
+        );
+
         //Ordena as Imagens em Ordem Ascendente
         if (formularioFiles.length > 0) {
           formularioFiles.sort((a: File, b: File) => {
@@ -456,36 +388,26 @@ export default function Home() {
           formData.append("file", file as File);
 
           try {
-            const response:any = await axios.post("/api/upload-image-s3",formData);
+            const response: any = await axios.post(
+              "/api/upload-image-s3",
+              formData
+            );
             const urlDaImagem = response.data.file.location;
             // const urlDaImagem = "";
-    
+
             // Imagens por Gênero
             if (file.name.toLowerCase().includes("masc")) {
               imagensMasculinas.push(urlDaImagem);
             }
-    
+
             if (file.name.toLowerCase().includes("fem")) {
               imagensFemininas.push(urlDaImagem);
             }
-    
+
             if (file.name.toLowerCase().includes("inf")) {
               imagensInfantis.push(urlDaImagem);
             }
-    
-            // Imagens por Cores
-            if (file.name.toLowerCase().includes("branco")) {
-              imagensCorBranco.push(urlDaImagem);
-            }
-    
-            if (file.name.toLowerCase().includes("preto")) {
-              imagensCorPreto.push(urlDaImagem);
-            }
-    
-            if (file.name.toLowerCase().includes("azul")) {
-              imagensCorAzul.push(urlDaImagem);
-            }
-    
+
             todasAsImagens.push(urlDaImagem);
           } catch (error) {
             console.error("Erro no Upload da Imagem: ", error);
@@ -493,19 +415,24 @@ export default function Home() {
         }
 
         // Dados da Planilha
-        var preco = parseFloat(dadosFormulario.preco.replace("R$", "").replace(".", "").replace(",", "."));
+        var preco = parseFloat(
+          dadosFormulario.preco
+            .replace("R$", "")
+            .replace(".", "")
+            .replace(",", ".")
+        );
 
         var produtosEVariacoes: any = [];
         var dadosVariacoesBling: any = [];
         if (tipoDeProduto === "camisa") {
-
           // Variação masculina da camisa
           if (dadosFormulario.tamanho_masculino) {
-            let codigoProdutoPaiMasculino = dadosFormulario.codigo.toLocaleUpperCase();
+            let codigoProdutoPaiMasculino =
+              dadosFormulario.codigo.toLocaleUpperCase();
 
             //Define o titulo de acordo com a loja
             let tituloProdutoMasculino: any;
-            switch(loja){ 
+            switch (loja) {
               case "agro":
                 tituloProdutoMasculino = `Camisa Agro Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
                 break;
@@ -518,14 +445,27 @@ export default function Home() {
             }
 
             //Define a descrição de acordo com a loja
-            let descricaoProdutoMasculino = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoMasculino)
-            || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoMasculino)
-            || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoMasculino);
+            let descricaoProdutoMasculino =
+              (loja === "agro" &&
+                descricaoCamisaPorLoja.agro.replace(
+                  "[titulo-produto]",
+                  tituloProdutoMasculino
+                )) ||
+              (loja === "fishing" &&
+                descricaoCamisaPorLoja.fishing.replace(
+                  "[titulo-produto]",
+                  tituloProdutoMasculino
+                )) ||
+              (loja === "motors" &&
+                descricaoCamisaPorLoja.motors.replace(
+                  "[titulo-produto]",
+                  tituloProdutoMasculino
+                ));
 
-            let imagensConcatenadasMasculinas = imagensMasculinas 
-              && imagensMasculinas.length > 0 
-              ? imagensMasculinas.join("|") 
-              : imagensMasculinas;
+            let imagensConcatenadasMasculinas =
+              imagensMasculinas && imagensMasculinas.length > 0
+                ? imagensMasculinas.join("|")
+                : imagensMasculinas;
 
             // Produto Pai
             let produtoPai = [
@@ -548,19 +488,30 @@ export default function Home() {
 
             var variacaoDeProdutoMasculino: any = [...produtoPai];
 
-            for(var i=0;i < relacaoDeTamanhos[0].masculino.tamanhos.length;i++){
+            for (
+              var i = 0;
+              i < relacaoDeTamanhos[0].masculino.tamanhos.length;
+              i++
+            ) {
               var item = relacaoDeTamanhos[0].masculino.tamanhos[i];
 
               //Sinaliza EAN Como Utilizado
-              var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
+              var resultaldoEAN = usaEan
+                ? (await axios.get("/api/ean")).data
+                : "";
               if (resultaldoEAN) {
-                await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+                await axios.put("/api/ean", {
+                  idEan: resultaldoEAN.id,
+                  sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}`,
+                });
               }
 
               //Variacoes para Planilha
               variacaoDeProdutoMasculino.push({
-                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-                descricao: `Tamanho:${item.nome}`, //Título
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
+                  item.sigla_camisa
+                }`,
+                descricao: `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}`, //Título
                 estoque: "1000",
                 preco: preco,
                 produto_variacao: "Variação",
@@ -569,12 +520,14 @@ export default function Home() {
                 codigo_pai: dadosFormulario.codigo.toLocaleUpperCase(),
                 url_imagens_externas: imagensConcatenadasMasculinas,
                 grupo_de_produtos: "Camisa Master",
-                ean: resultaldoEAN.numero
+                ean: resultaldoEAN.numero,
               });
 
               // Dados Bling
               dadosVariacoesBling.push({
-                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
+                  item.sigla_camisa
+                }`,
                 marca: nomeLoja,
                 preco: preco,
                 situacao: "A",
@@ -633,8 +586,8 @@ export default function Home() {
             let codigoProdutoPaiFeminino = `${dadosFormulario.codigo.toLocaleUpperCase()}BL`;
 
             //Define o titulod e acordo com a loja
-            let tituloProdutoFeminino:any;
-            switch(loja){ 
+            let tituloProdutoFeminino: any;
+            switch (loja) {
               case "agro":
                 tituloProdutoFeminino = `Camisa Agro Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
                 break;
@@ -647,14 +600,27 @@ export default function Home() {
             }
 
             //Define a descrição de acordo com a loja
-            let descricaoProdutoFeminino = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoFeminino)
-            || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoFeminino)
-            || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoFeminino);
+            let descricaoProdutoFeminino =
+              (loja === "agro" &&
+                descricaoCamisaPorLoja.agro.replace(
+                  "[titulo-produto]",
+                  tituloProdutoFeminino
+                )) ||
+              (loja === "fishing" &&
+                descricaoCamisaPorLoja.fishing.replace(
+                  "[titulo-produto]",
+                  tituloProdutoFeminino
+                )) ||
+              (loja === "motors" &&
+                descricaoCamisaPorLoja.motors.replace(
+                  "[titulo-produto]",
+                  tituloProdutoFeminino
+                ));
 
-            let imagensConcatenadasFemininas = imagensFemininas 
-              && imagensFemininas.length > 0 
-              ? imagensFemininas.join("|") 
-              : imagensFemininas;
+            let imagensConcatenadasFemininas =
+              imagensFemininas && imagensFemininas.length > 0
+                ? imagensFemininas.join("|")
+                : imagensFemininas;
 
             // Produto Pai
             var produtoPai = [
@@ -675,21 +641,32 @@ export default function Home() {
               },
             ];
 
-            var variacaoDeProdutoFeminino:any = [...produtoPai];
+            var variacaoDeProdutoFeminino: any = [...produtoPai];
 
-            for(var i=0;i < relacaoDeTamanhos[0].feminino.tamanhos.length;i++){
+            for (
+              var i = 0;
+              i < relacaoDeTamanhos[0].feminino.tamanhos.length;
+              i++
+            ) {
               var item = relacaoDeTamanhos[0].feminino.tamanhos[i];
-              
+
               //Sinaliza EAN Como Utilizado
-              var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
+              var resultaldoEAN = usaEan
+                ? (await axios.get("/api/ean")).data
+                : "";
               if (resultaldoEAN) {
-                await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+                await axios.put("/api/ean", {
+                  idEan: resultaldoEAN.id,
+                  sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}`,
+                });
               }
 
               // Dados da Planilha
               variacaoDeProdutoFeminino.push({
-                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-                descricao: `Tamanho:${item.nome}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
+                  item.sigla_camisa
+                }`,
+                descricao: `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}`,
                 estoque: "1000",
                 preco: preco,
                 produto_variacao: "Variação",
@@ -698,12 +675,14 @@ export default function Home() {
                 codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}BL`,
                 url_imagens_externas: imagensConcatenadasFemininas,
                 grupo_de_produtos: "Camisa Master",
-                ean: resultaldoEAN.numero
+                ean: resultaldoEAN.numero,
               });
 
               // Dados do Bling
               dadosVariacoesBling.push({
-                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
+                  item.sigla_camisa
+                }`,
                 preco: preco,
                 situacao: "A",
                 descricaoCurta: "Descrição curta",
@@ -762,8 +741,8 @@ export default function Home() {
             let codigoProdutoPaiInfantil = `${dadosFormulario.codigo.toLocaleUpperCase()}I`;
 
             //Define o titulo de acordo com a loja
-            let tituloProdutoInfantil:any;
-            switch(loja){ 
+            let tituloProdutoInfantil: any;
+            switch (loja) {
               case "agro":
                 tituloProdutoInfantil = `Camisa Agro Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
                 break;
@@ -776,14 +755,27 @@ export default function Home() {
             }
 
             //Define a descrição de acordo com a loja
-            let descricaoProdutoInfantil = loja === 'agro' && descricaoCamisaPorLoja.agro.replace("[titulo-produto]",tituloProdutoInfantil)
-            || loja === 'fishing' && descricaoCamisaPorLoja.fishing.replace("[titulo-produto]",tituloProdutoInfantil)
-            || loja === 'motors' && descricaoCamisaPorLoja.motors.replace("[titulo-produto]",tituloProdutoInfantil);
+            let descricaoProdutoInfantil =
+              (loja === "agro" &&
+                descricaoCamisaPorLoja.agro.replace(
+                  "[titulo-produto]",
+                  tituloProdutoInfantil
+                )) ||
+              (loja === "fishing" &&
+                descricaoCamisaPorLoja.fishing.replace(
+                  "[titulo-produto]",
+                  tituloProdutoInfantil
+                )) ||
+              (loja === "motors" &&
+                descricaoCamisaPorLoja.motors.replace(
+                  "[titulo-produto]",
+                  tituloProdutoInfantil
+                ));
 
-            let imagensConcatenadasInfantis = imagensInfantis 
-              && imagensInfantis.length > 0 
-              ? imagensInfantis.join("|") 
-              : imagensInfantis;
+            let imagensConcatenadasInfantis =
+              imagensInfantis && imagensInfantis.length > 0
+                ? imagensInfantis.join("|")
+                : imagensInfantis;
 
             // Produto Pai
             let produtoPai = [
@@ -804,21 +796,32 @@ export default function Home() {
               },
             ];
 
-            var variacaoDeProdutoInfantil:any = [...produtoPai];
+            var variacaoDeProdutoInfantil: any = [...produtoPai];
 
-            for(var i=0;i < relacaoDeTamanhos[0].infantil.tamanhos.length;i++){
+            for (
+              var i = 0;
+              i < relacaoDeTamanhos[0].infantil.tamanhos.length;
+              i++
+            ) {
               var item = relacaoDeTamanhos[0].infantil.tamanhos[i];
-              
+
               //Sinaliza EAN Como Utilizado
-              var resultaldoEAN =  usaEan ? (await axios.get("/api/ean")).data : "";
+              var resultaldoEAN = usaEan
+                ? (await axios.get("/api/ean")).data
+                : "";
               if (resultaldoEAN) {
-                await axios.put("/api/ean", { idEan: resultaldoEAN.id, sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}` });
+                await axios.put("/api/ean", {
+                  idEan: resultaldoEAN.id,
+                  sku: `${dadosFormulario.codigo.concat(item.sigla_camisa)}`,
+                });
               }
 
               variacaoDeProdutoInfantil.push({
-                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
+                  item.sigla_camisa
+                }`,
                 marca: loja,
-                descricao: `Tamanho:${item.nome}`,
+                descricao: `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}`,
                 estoque: "1000",
                 preco: preco,
                 produto_variacao: "Variação",
@@ -827,13 +830,15 @@ export default function Home() {
                 codigo_pai: `${dadosFormulario.codigo.toLocaleUpperCase()}I`,
                 url_imagens_externas: imagensConcatenadasInfantis,
                 grupo_de_produtos: "Camisa Master",
-                ean: resultaldoEAN.numero
+                ean: resultaldoEAN.numero,
               });
 
               // Dados Bling
               dadosVariacoesBling.push({
-                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${item.sigla_camisa}`,
-                marca:nomeLoja,
+                codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
+                  item.sigla_camisa
+                }`,
+                marca: nomeLoja,
                 preco: preco,
                 situacao: "A",
                 descricaoCurta: "Descrição curta",
@@ -916,7 +921,7 @@ export default function Home() {
           actionEstoque: "T",
           tributacao: {
             origem: 0,
-            ncm: (tipoDeProduto === 'Camiseta' && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00',
+            ncm: "6101.30.00",
             cest: "28.038.00",
             codigoListaServicos: "",
             spedTipoItem: "",
@@ -933,39 +938,41 @@ export default function Home() {
           variacoes: dadosVariacoesBling,
         };
 
-        produtosEVariacoesUnidas.push(produtosEVariacoes.flat());   
+        produtosEVariacoesUnidas.push(produtosEVariacoes.flat());
       }
     }
-    
+
     var todosOsProdutos = produtosEVariacoesUnidas.flat();
 
     //remover posicao do array que contem o valor do codigo_pai = ""
-    if(data.codigo_all) {
-
+    if (data.codigo_all) {
       var produtosDesmembrados = [];
       var produtoPaiAll = todosOsProdutos[0];
 
-      todosOsProdutos = todosOsProdutos.filter((produto) => 
-        produto.codigo_pai !== "" 
-        && !produto.codigo.includes("I") 
-        || !produto.codigo.includes("BL"));
+      todosOsProdutos = todosOsProdutos.filter(
+        (produto) =>
+          (produto.codigo_pai !== "" && !produto.codigo.includes("I")) ||
+          !produto.codigo.includes("BL")
+      );
 
-      produtoPaiAll.codigo = `ALL_${produtoPaiAll.codigo}`;
+      produtoPaiAll.codigo = data.codigo_all;
       produtoPaiAll.descricao = data.titulo_all;
 
       todosOsProdutos.map((produto, index) => {
-        if(produto.codigo_pai !== "") {
+        if (produto.codigo_pai !== "") {
           produto.codigo_pai = produtoPaiAll.codigo;
-          produto.codigo = `ALL_${produto.codigo}`
+          produto.codigo = `ALL_${produto.codigo}`;
         }
         // return (index !== 0) && produto.codigo_pai !== ""
         //   ? produto.codigo_pai = todosOsProdutos[0].codigo
         //   : null;
       });
 
-      console.log("Produtos tratados:", todosOsProdutos)
-      
-      produtosDesmembrados.push(...todosOsProdutos.filter((produto) => produto.codigo_pai !== ""));  
+      console.log("Produtos tratados:", todosOsProdutos);
+
+      produtosDesmembrados.push(
+        ...todosOsProdutos.filter((produto) => produto.codigo_pai !== "")
+      );
 
       //inserir produtopai no inicio do array
       produtosDesmembrados.unshift(produtoPaiAll);
@@ -974,18 +981,17 @@ export default function Home() {
       //console.log("Produtos Desmembrados:", produtosDesmembrados);
 
       //console.log("Tipo All:", produtosDesmembrados);
-      setTipoCadastro("codigo_all");
-      
-    }else{
+      setTipoCadastro("is_all");
+    } else {
       setTipoCadastro("planilha");
     }
 
-    console.log(todosOsProdutos)
+    console.log(todosOsProdutos);
 
     try {
-      if (tipoCadastro === "planilha" || tipoCadastro === "codigo_all") {
+      if (tipoCadastro === "planilha" || tipoCadastro === "is_all") {
         //console.log("Dados da Planilha:", todosOsProdutos);
-        geraPlanilha(todosOsProdutos, "cadastro-bling");
+        //geraPlanilha(todosOsProdutos, "cadastro-bling");
       } else if (tipoCadastro === "bling") {
         //console.log("Dados do Bling:", dadosBling);
         // saveProdutos(dadosBling);
@@ -1006,13 +1012,13 @@ export default function Home() {
       Código: row.codigo,
       Descrição: row.descricao,
       Unidade: "UN",
-      NCM: (tipoDeProduto === "camiseta" && tipoAlgodao === 'comalgodao') ? '6205.20.00' : '6101.30.00',
+      NCM: "6101.30.00",
       Origem: parseFloat("0"),
       Preço: row.preco,
       "Valor IPI fixo": parseFloat("0"),
       Observações: "",
       Situação: "Ativo",
-      Estoque: row.estoque, 
+      Estoque: row.estoque,
       "Preço de custo": parseFloat("55"),
       "Cód. no fornecedor": "",
       Fornecedor: "",
@@ -1040,7 +1046,12 @@ export default function Home() {
       "Código Pai": row.codigo_pai,
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos,
-      Marca: loja === "" ? "Brk" : (loja === "agro" && "Brk Agro") || (loja === "fishing" && "Brk Fishing") || (loja === "motors" && "Brk Motors"), 
+      Marca:
+        loja === ""
+          ? "Brk"
+          : (loja === "agro" && "Brk Agro") ||
+            (loja === "fishing" && "Brk Fishing") ||
+            (loja === "motors" && "Brk Motors"),
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": row.descricao_curta,
@@ -1112,10 +1123,10 @@ export default function Home() {
   };
 
   async function criaEan(dataEan: any) {
-    setCarregando(true)
+    setCarregando(true);
     var dataEans = [];
     for (let i = 0; i <= dataEan.length; i++) {
-      dataEans.push(dataEan[i])
+      dataEans.push(dataEan[i]);
     }
 
     try {
@@ -1125,7 +1136,7 @@ export default function Home() {
       console.log("Ops! Houve um problema: ", error);
     } finally {
       alert("Importação Finalizada! 🎉");
-      setCarregando(false)
+      setCarregando(false);
     }
   }
 
@@ -1133,34 +1144,54 @@ export default function Home() {
     <>
       <div className="relative flex flex-col min-h-screen h-full w-full items-center justify-center gap-4 py-10 overflow-y-clip">
         {/* Inteface de Carregamento */}
-        {carregando && 
+        {carregando && (
           <>
             <div className="fixed w-screen h-screen top-0 left-0 z-20 bg-zinc-100/10 backdrop-blur-[1px] blur-[1px]"></div>
             <div className="fixed top-1/3 left-1/3 w-[520px] z-30 bg-zinc-800 p-20 mt-2 rounded-md">
               <span className="flex justify-center items-center text-zinc-200">
-                <CircleNotch size={50} className="animate-spin mr-4 text-zinc-200" />
+                <CircleNotch
+                  size={50}
+                  className="animate-spin mr-4 text-zinc-200"
+                />
                 Processando...
               </span>
             </div>
           </>
-        }       
+        )}
 
         {/* HUD do EAN/GTIN */}
-        <div className="fixed flex flex-col top-0 right-0 p-5" title="Quantidade de EAN's Restantes. Clique aqui para importar mais.">
+        <div
+          className="fixed flex flex-col top-0 right-0 p-5"
+          title="Quantidade de EAN's Restantes. Clique aqui para importar mais."
+        >
           <label
-            className={`relative flex flex-col justify-center items-center text-center rounded-lg ${quantidadeEans < 30 ? 'text-red-300' : 'text-green-300'} border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]`}
+            className={`relative flex flex-col justify-center items-center text-center rounded-lg ${
+              quantidadeEans < 30 ? "text-red-300" : "text-green-300"
+            } border border-slate-200/35 p-2 gap-y-1 cursor-pointer bg-slate-200/10 gap-[1.5rem]`}
             htmlFor="upean"
           >
             {/* <UploadSimple className="font-bold" size={36} /> */}
-            <span className="flex items-center justify-center p-1">{quantidadeEans}</span>
-            <input className="hidden" id="upean" type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
+            <span className="flex items-center justify-center p-1">
+              {quantidadeEans}
+            </span>
+            <input
+              className="hidden"
+              id="upean"
+              type="file"
+              accept=".xlsx, .xls"
+              onChange={handleFileUpload}
+            />
           </label>
         </div>
 
         {/* Imagens Dinâmicas por Produtos */}
         <Image
           src={`/camisa.png`}
-          className={`absolute ease-in-out -left-60 -bottom-96 z-0 ${tipoDeProduto === "camisa" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
+          className={`absolute ease-in-out -left-60 -bottom-96 z-0 ${
+            tipoDeProduto === "camisa"
+              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
+              : "opacity-0 translate-x-10 translate-y-10"
+          }`}
           width={900}
           height={900}
           alt=""
@@ -1168,7 +1199,11 @@ export default function Home() {
         />
         <Image
           src={`/camiseta.png`}
-          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${tipoDeProduto === "camiseta" ? "translate-x-0 translate-y-0 placeholder-opacity-75" : "opacity-0 translate-x-10 translate-y-10"}`}
+          className={`absolute ease-in-out -left-60 -bottom-80 z-0 ${
+            tipoDeProduto === "camiseta"
+              ? "translate-x-0 translate-y-0 placeholder-opacity-75"
+              : "opacity-0 translate-x-10 translate-y-10"
+          }`}
           width={900}
           height={900}
           alt=""
@@ -1176,14 +1211,30 @@ export default function Home() {
 
         {/* Escolha de Loja */}
         <div className="flex w-full justify-center align-center z-10  border-b pb-10 border-zinc-800">
-          <button onClick={() => setLoja("agro")} type="button" className={`flex flex-col gap-1 items-center justify-center py-2 px-6 text-sm`}>
-            <span className={`flex flex-col items-center justify-center ${loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"} `}>
+          <button
+            onClick={() => setLoja("agro")}
+            type="button"
+            className={`flex flex-col gap-1 items-center justify-center py-2 px-6 text-sm`}
+          >
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "agro" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
               <Barn className="" size={32} />
               Brk Agro
             </span>
           </button>
-          <button onClick={() => setLoja("fishing")} type="button" className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm`}>
-            <span className={`flex flex-col items-center justify-center ${loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"} `}>
+          <button
+            onClick={() => setLoja("fishing")}
+            type="button"
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm`}
+          >
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "fishing" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
               <FishSimple size={32} />
               Brk Fishing
             </span>
@@ -1191,9 +1242,15 @@ export default function Home() {
           <button
             onClick={() => setLoja("motors")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm rounded-r-lg ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"}`}
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm rounded-r-lg ${
+              loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
+            }`}
           >
-            <span className={`flex flex-col items-center justify-center ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"} `}>
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
               <Motorcycle size={32} />
               Brk Motors
             </span>
@@ -1201,9 +1258,15 @@ export default function Home() {
           <button
             onClick={() => setLoja("brk")}
             type="button"
-            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm rounded-r-lg ${loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"}`}
+            className={`flex flex-col gap-2 items-center justify-center py-2 px-6 text-sm rounded-r-lg ${
+              loja === "motors" ? "text-zinc-200" : "text-zinc-200/30"
+            }`}
           >
-            <span className={`flex flex-col items-center justify-center ${loja === "" ? "text-zinc-200" : "text-zinc-200/30"} `}>
+            <span
+              className={`flex flex-col items-center justify-center ${
+                loja === "" ? "text-zinc-200" : "text-zinc-200/30"
+              } `}
+            >
               <Empty size={32} />
               Nenhum
             </span>
@@ -1216,7 +1279,9 @@ export default function Home() {
             onClick={() => setTipoDeProduto("camisa")}
             type="button"
             className={`flex gap-2 items-center justify-center py-1 px-4 rounded-t-lg text-sm ${
-              tipoDeProduto === "camisa" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "camisa"
+                ? "bg-slate-200 text-zinc-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <Hoodie size={21} />
@@ -1226,7 +1291,9 @@ export default function Home() {
             onClick={() => setTipoDeProduto("camiseta")}
             type="button"
             className={`hidden flex-col gap-1 items-center justify-center py-4 px-1 text-sm ${
-              tipoDeProduto === "camiseta" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "camiseta"
+                ? "bg-slate-200 text-zinc-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <Tree size={32} />
@@ -1236,7 +1303,9 @@ export default function Home() {
             onClick={() => setTipoDeProduto("bone")}
             type="button"
             className={`hidden flex-col gap-2 items-center justify-center py-4 px-1 text-sm ${
-              tipoDeProduto === "bone" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "bone"
+                ? "bg-slate-200 text-zinc-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             }`}
           >
             <BaseballCap size={32} />
@@ -1246,7 +1315,9 @@ export default function Home() {
             onClick={() => setTipoDeProduto("cortavento")}
             type="button"
             className={`hidden flex-col gap-2 items-center justify-center py-4 px-1 text-sm rounded-bl-lg ${
-              tipoDeProduto === "cortavento" ? "bg-slate-200 text-zinc-950" : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
+              tipoDeProduto === "cortavento"
+                ? "bg-slate-200 text-zinc-950"
+                : "text-zinc-200 hover:bg-slate-200 hover:text-slate-950"
             } opacity-15 pointer-events-none`}
           >
             <Hoodie size={32} />
@@ -1256,60 +1327,120 @@ export default function Home() {
 
         {/* Formulários */}
         <div className="flex justify-center items-center container z-10">
-          <form className="flex w-full flex-col justify-center items-center" onSubmit={handleSubmit(onSubmit)}>            
-            {fields.map((field, index) => (
-              <div key={field.id} className={`w-full max-sm:mx-4 mb-10 ${index%2 === 0 ? "border-b-2 bg-zinc-100/5 backdrop-blur-[5px] border-zinc-600" : ""} rounded-lg p-10`}>
-                <button
-                  type="button"
-                  onClick={() => removeFormInstance(index)}
-                  className={`${fields.length === 1 ? "hidden" : "flex"} w-full text-red-400 hover:text-red-300 text-sm gap-1 justify-end`}
+          <form
+            className="flex w-full flex-col justify-center items-center"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <AnimatePresence>
+              {fields.map((field, index) => (
+                <motion.div
+                  key={field.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className={`w-full max-sm:mx-4 mb-10 ${
+                    index % 2 === 0
+                      ? "border-b-2 bg-zinc-100/5 backdrop-blur-[5px] border-zinc-600"
+                      : ""
+                  } rounded-lg p-10`}
                 >
-                  <span>Remover</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                <div className="flex w-full max-sm:mx-4 max-sm:flex-col justify-center items-center gap-10 my-10">
-                  {tipoDeProduto === "camisa" && (
-                    <>
-                      <div className="flex w-full justify-center items-center gap-10">
-                        <div className="flex">
+                  <button
+                    type="button"
+                    onClick={() => removeFormInstance(index)}
+                    className={`${
+                      fields.length === 1 ? "hidden" : "flex"
+                    } w-full text-red-400 hover:text-red-300 text-sm gap-1 justify-end`}
+                  >
+                    <span>Remover</span>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                  <div className="flex w-full max-sm:mx-4 max-sm:flex-col justify-center items-center gap-10 my-10">
+                    {tipoDeProduto === "camisa" && (
+                      <>
+                        <div className="flex w-full justify-center items-center gap-10">
+                          <div className="flex">
                             <input
                               className="text-zinc-200 cursor-pointer"
                               type="file"
                               multiple
                               {...register(`forms.${index}.imagens`)}
                             />
-                        </div>
-
-                        <div className="flex w-full lg:flex-col flex-col gap-10">
-                          <div className="flex gap-10">
-                            <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="codigo">
-                            Código
-                            <input
-                              className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
-                              id="codigo"
-                              type="text"
-                              placeholder="Ex: C0..."
-                              required
-                              {...register(`forms.${index}.codigo`)}
-                            />
-                          </label>
-                            <label className="flex w-full lg:w-1/6 flex-col gap-2 text-zinc-200" htmlFor="preco">
-                              Preço
-                              <CurrencyInput
-                                className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
-                                id="preco"
-                                placeholder={`${precos.camisa}`}
-                                defaultValue={`${precos.camisa}`}
-                                intlConfig={{ locale: "pt-BR", currency: "BRL" }}
-                                {...register(`forms.${index}.preco`)}
-                              />
-                            </label>
                           </div>
 
-                          <div className="flex">
-                            <label className="flex w-full flex-col gap-2 text-zinc-200" htmlFor="titulo">
+                          <div className="flex w-full lg:flex-col flex-col gap-10">
+                            <div className="flex justify-between">
+                              <div className="flex gap-10">
+                                <label
+                                  className="flex w-full lg:w-1/2 flex-col gap-2 text-zinc-200"
+                                  htmlFor="codigo"
+                                >
+                                  Código
+                                  <input
+                                    className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5 uppercase"
+                                    id="codigo"
+                                    type="text"
+                                    placeholder="Ex: C0..."
+                                    required
+                                    {...register(`forms.${index}.codigo`)}
+                                  />
+                                </label>
+                                <label
+                                  className="flex w-full lg:w-1/2 flex-col gap-2 text-zinc-200"
+                                  htmlFor="preco"
+                                >
+                                  Preço
+                                  <CurrencyInput
+                                    className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                                    id="preco"
+                                    placeholder={`${precos.camisa}`}
+                                    defaultValue={`${precos.camisa}`}
+                                    intlConfig={{
+                                      locale: "pt-BR",
+                                      currency: "BRL",
+                                    }}
+                                    {...register(`forms.${index}.preco`)}
+                                  />
+                                </label>
+                              </div>
+                              <div className="flex">
+                                <label
+                                  className="flex w-full lg:w-1/1 flex-col gap-2 text-zinc-200"
+                                  htmlFor="preco"
+                                >
+                                  <span>
+                                    Cor{" "}
+                                    <small className="opacity-50">
+                                      {`(*Se Cód. ALL)`}
+                                    </small>
+                                  </span>
+                                  <input
+                                    className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
+                                    id="cor-modelo"
+                                    placeholder="(Opcional)"
+                                    {...register(`forms.${index}.cor_modelo_all`)}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+
+                            <div className="flex">
+                              <label
+                                className="flex w-full flex-col gap-2 text-zinc-200"
+                                htmlFor="titulo"
+                              >
                                 Titulo
                                 <input
                                   className="bg-transparent text-zinc-400 placeholder:text-zinc-400/25 placeholder:text-sm border-b border-b-zinc-700 py-1.5"
@@ -1318,7 +1449,7 @@ export default function Home() {
                                   placeholder="Ex: Camisa Agro Brk..."
                                   required
                                   {...register(`forms.${index}.titulo`)}
-                                  onChange={value => {
+                                  onChange={(value) => {
                                     const newTitulos = [...titulos];
                                     newTitulos[index] = value.target.value;
                                     setTitulos(newTitulos);
@@ -1327,111 +1458,189 @@ export default function Home() {
                                 <div className="flex justify-between">
                                   <span className="text-zinc-400/50 text-sm font-light">
                                     {(() => {
-                                      switch(loja){ 
+                                      switch (loja) {
                                         case "agro":
-                                          return `Camisa Agro Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                          return `Camisa Agro Feminina Brk ${
+                                            titulos[index] || ""
+                                          } com Proteção Solar UV50+`;
                                         case "fishing":
-                                          return `Camisa de Pesca Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                          return `Camisa de Pesca Feminina Brk ${
+                                            titulos[index] || ""
+                                          } com Proteção Solar UV50+`;
                                         case "motors":
-                                          return `Camisa Motociclismo Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
+                                          return `Camisa Motociclismo Feminina Brk ${
+                                            titulos[index] || ""
+                                          } com Proteção Solar UV50+`;
                                         default:
                                           return `${titulos[index] || ""}`;
                                       }
                                     })()}
                                   </span>
-                                  <span className={`${(() => {
-                                    const textoCompleto = (() => {
-                                      switch(loja){ 
-                                        case "agro":
-                                          return `Camisa Agro Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
-                                        case "fishing":
-                                          return `Camisa de Pesca Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
-                                        case "motors":
-                                          return `Camisa Motociclismo Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`;
-                                        default:
-                                          return `${titulos[index] || ""}`;
-                                      }
-                                    })();
-                                    return textoCompleto.length > 65 ? 'text-red-400/90 font-extrabold text-4xl' : 'text-green-400/90';
-                                  })()} text-sm font-light`}>
+                                  <span
+                                    className={`${(() => {
+                                      const textoCompleto = (() => {
+                                        switch (loja) {
+                                          case "agro":
+                                            return `Camisa Agro Feminina Brk ${
+                                              titulos[index] || ""
+                                            } com Proteção Solar UV50+`;
+                                          case "fishing":
+                                            return `Camisa de Pesca Feminina Brk ${
+                                              titulos[index] || ""
+                                            } com Proteção Solar UV50+`;
+                                          case "motors":
+                                            return `Camisa Motociclismo Feminina Brk ${
+                                              titulos[index] || ""
+                                            } com Proteção Solar UV50+`;
+                                          default:
+                                            return `${titulos[index] || ""}`;
+                                        }
+                                      })();
+                                      return textoCompleto.length > 65
+                                        ? "text-red-400/90 font-extrabold text-2xl"
+                                        : "text-green-400/90";
+                                    })()} text-sm font-light`}
+                                  >
                                     {(() => {
-                                      switch(loja){ 
+                                      switch (loja) {
                                         case "agro":
-                                          return `Camisa Agro Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`.length;
+                                          return `Camisa Agro Feminina Brk ${
+                                            titulos[index] || ""
+                                          } com Proteção Solar UV50+`.length;
                                         case "fishing":
-                                          return `Camisa de Pesca Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`.length;
+                                          return `Camisa de Pesca Feminina Brk ${
+                                            titulos[index] || ""
+                                          } com Proteção Solar UV50+`.length;
                                         case "motors":
-                                          return `Camisa Motociclismo Feminina Brk ${titulos[index] || ""} com Proteção Solar UV50+`.length;
+                                          return `Camisa Motociclismo Feminina Brk ${
+                                            titulos[index] || ""
+                                          } com Proteção Solar UV50+`.length;
                                         default:
                                           return (titulos[index] || "").length;
                                       }
                                     })()}
                                   </span>
                                 </div>
-                            </label>
+                              </label>
+                            </div>
                           </div>
-                          
-                          
-                        </div>
 
-                        {/* Variações de Gêneros */}
-                        <div className="flex w-auto">
-                          <div className="flex flex-coljustify-center border border-slate-200/10 p-4 gap-10">
-
-                            <div className="flex flex-col gap-4">
-                              <div>
-                                <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-masculino-${index}`}>
-                                  <input id={`tamanho-masculino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_masculino`)} defaultChecked={true} />
-                                  <span className="text-zinc-200">Masculino</span>
-                                </label>
-                              </div>
-                              <div>
-                                <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-feminino-${index}`}>
-                                  <input id={`tamanho-feminino-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_feminino`)} defaultChecked={true} />
-                                  <span className="text-zinc-200">Feminino</span>
-                                </label>
-                              </div>
-                              <div>
-                                <label className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer" htmlFor={`tamanho-infantil-${index}`}>
-                                  <input id={`tamanho-infantil-${index}`} type="checkbox" {...register(`forms.${index}.tamanho_infantil`)} defaultChecked={true} />
-                                  <span className="text-zinc-200">Infantil</span>
-                                </label>
+                          {/* Variações de Gêneros */}
+                          <div className="flex w-auto">
+                            <div className="flex flex-coljustify-center border border-slate-200/10 p-4 gap-10">
+                              <div className="flex flex-col gap-4">
+                                <div>
+                                  <label
+                                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
+                                    htmlFor={`tamanho-masculino-${index}`}
+                                  >
+                                    <input
+                                      id={`tamanho-masculino-${index}`}
+                                      type="checkbox"
+                                      {...register(
+                                        `forms.${index}.tamanho_masculino`
+                                      )}
+                                      defaultChecked={true}
+                                    />
+                                    <span className="text-zinc-200">
+                                      Masculino
+                                    </span>
+                                  </label>
+                                </div>
+                                <div>
+                                  <label
+                                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
+                                    htmlFor={`tamanho-feminino-${index}`}
+                                  >
+                                    <input
+                                      id={`tamanho-feminino-${index}`}
+                                      type="checkbox"
+                                      {...register(
+                                        `forms.${index}.tamanho_feminino`
+                                      )}
+                                      defaultChecked={true}
+                                    />
+                                    <span className="text-zinc-200">
+                                      Feminino
+                                    </span>
+                                  </label>
+                                </div>
+                                <div>
+                                  <label
+                                    className="flex gap-4 border border-zinc-800 py-4 px-10 rounded-lg cursor-pointer"
+                                    htmlFor={`tamanho-infantil-${index}`}
+                                  >
+                                    <input
+                                      id={`tamanho-infantil-${index}`}
+                                      type="checkbox"
+                                      {...register(
+                                        `forms.${index}.tamanho_infantil`
+                                      )}
+                                      defaultChecked={true}
+                                    />
+                                    <span className="text-zinc-200">
+                                      Infantil
+                                    </span>
+                                  </label>
+                                </div>
                               </div>
                             </div>
-
                           </div>
                         </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
+                      </>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
             {/* Botões para adicionar novo produto */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               type="button"
               onClick={addFormInstance}
               className="self-end mb-10 py-2 px-10 border border-zinc-400 rounded-lg text-zinc-200 hover:bg-zinc-800"
             >
-                Adicionar
-            </button>
+              Adicionar
+            </motion.button>
 
             {/* Botões de ação */}
             <div className="flex container items-center justify-between mt-10 pt-10 py-2 border-t border-zinc-800 gap-8">
               <div className="flex gap-10">
-                <label className="flex gap-2 items-center justify-center cursor-pointer" htmlFor="codigo_all">
+                <label
+                  className="flex gap-2 items-center justify-center cursor-pointer"
+                  htmlFor="is_all"
+                >
                   <input
-                    id="codigo_all" 
-                    type="checkbox" 
-                    className="w-4 h-4" 
-                    {...register(`codigo_all`, {
-                      onChange: (e) => setTipoCadastro(e.target.checked ? "codigo_all" : "planilha")
+                    id="is_all"
+                    type="checkbox"
+                    className="w-4 h-4"
+                    {...register(`is_all`, {
+                      onChange: (e) =>
+                        setTipoCadastro(
+                          e.target.checked ? "is_all" : "planilha"
+                        ),
                     })}
                   />
                   <span className="text-zinc-200">All</span>
                 </label>
-                <input className={`${tipoCadastro === "codigo_all" ? "flex" : "hidden" } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`} type="text" {...register(`titulo_all`)} placeholder="Título do produto ALL"/>
+                <input
+                  className={`${
+                    tipoCadastro === "is_all" ? "flex" : "hidden"
+                  } min-w-[600px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`}
+                  type="text"
+                  {...register(`titulo_all`)}
+                  placeholder="Título do produto ALL"
+                />
+                <input
+                  className={`${
+                    tipoCadastro === "is_all" ? "flex" : "hidden"
+                  } min-w-[60px] bg-transparent text-zinc-400 placeholder:text-zinc-400/80 placeholder:text-sm border-b border-b-zinc-700 py-1.5`}
+                  type="text"
+                  {...register(`codigo_all`)}
+                  placeholder="Código produto ALL"
+                />
               </div>
 
               <button
@@ -1439,7 +1648,10 @@ export default function Home() {
                   setTipoCadastro("planilha");
                 }}
                 type="submit"
-                className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                className={`py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${
+                  carregando &&
+                  "pointer-events-none cursor-not-allowed opacity-5"
+                }`}
               >
                 {carregando ? (
                   <span className="flex justify-center items-center">
@@ -1458,7 +1670,10 @@ export default function Home() {
                   setTipoCadastro("bling");
                 }}
                 type="submit"
-                className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${
+                  carregando &&
+                  "pointer-events-none cursor-not-allowed opacity-5"
+                }`}
               >
                 {carregando ? (
                   <span className="flex justify-center items-center">
@@ -1471,13 +1686,16 @@ export default function Home() {
                   </span>
                 )}
               </button>
-              
+
               <button
                 onClick={() => {
                   setTipoCadastro("bling");
                 }}
                 type="submit"
-                className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${carregando && "pointer-events-none cursor-not-allowed opacity-5"}`}
+                className={`hidden py-2 px-10 border border-transparent hover:border-zinc-400 rounded-lg text-zinc-200 ${
+                  carregando &&
+                  "pointer-events-none cursor-not-allowed opacity-5"
+                }`}
               >
                 {carregando ? (
                   <span className="flex justify-center items-center">
@@ -1490,10 +1708,7 @@ export default function Home() {
                   </span>
                 )}
               </button>
-              
-              
             </div>
-
           </form>
         </div>
       </div>
