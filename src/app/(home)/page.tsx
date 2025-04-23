@@ -316,7 +316,7 @@ export default function Home() {
     var produtosEVariacoesUnidas = [];
     for (const dadosFormulario of data.forms) {
       var nomeLoja =
-        loja === ""
+        loja === "Brk"
           ? "Brk"
           : (loja === "agro" && "Brk Agro") ||
             (loja === "fishing" && "Brk Fishing") ||
@@ -441,6 +441,9 @@ export default function Home() {
                 break;
               case "motors":
                 tituloProdutoMasculino = `Camisa Motociclismo Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              default:
+                tituloProdutoMasculino = dadosFormulario.titulo;
                 break;
             }
 
@@ -582,6 +585,9 @@ export default function Home() {
               case "motors":
                 tituloProdutoFeminino = `Camisa Motociclismo Feminina Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
                 break;
+              default:
+                tituloProdutoFeminino = dadosFormulario.titulo;
+                break;
             }
 
             //Define a descrição de acordo com a loja
@@ -721,6 +727,9 @@ export default function Home() {
                 break;
               case "motors":
                 tituloProdutoInfantil = `Camisa Motociclismo Infantil Brk ${dadosFormulario.titulo} com Proteção Solar UV50+`;
+                break;
+              default:
+                tituloProdutoInfantil = dadosFormulario.titulo;
                 break;
             }
 
