@@ -175,6 +175,8 @@ export default function Home() {
   const [data, setData] = useState<any[]>([]);
   const [titulos, setTitulos] = useState<string[]>([]);
 
+  console.log(loja)
+
   async function getNumeroEans() {
     const dataNumeroEans = await axios.get("api/ean?quantidadeeans=true");
     setQuantidadeEans(dataNumeroEans ? dataNumeroEans.data.count : "0");
@@ -315,12 +317,15 @@ export default function Home() {
 
     var produtosEVariacoesUnidas = [];
     for (const dadosFormulario of data.forms) {
-      var nomeLoja =
-        loja === "Brk"
-          ? "Brk"
-          : (loja === "agro" && "Brk Agro") ||
-            (loja === "fishing" && "Brk Fishing") ||
-            (loja === "motors" && "Brk Motors");
+      var nomeLoja = loja == 'Brk' && 'Brk' 
+      || loja == 'agro' && 'Brk Agro' 
+      || loja == 'fishing' && 'Brk Fishing'
+      || loja == 'motors' && 'Brk Motors';
+        // loja === "Brk"
+        //   ? "Brk"
+        //   : (loja === "agro" && "Brk Agro") ||
+        //     (loja === "fishing" && "Brk Fishing") ||
+        //     (loja === "motors" && "Brk Motors");
 
       var descricaoProduto;
 
@@ -816,9 +821,9 @@ export default function Home() {
                 freteGratis: false,
                 descricaoComplementar: "Descrição complementar",
                 dimensoes: {
-                  largura: 10,
-                  altura: 11,
-                  profundidade: 16,
+                  largura: 22,
+                  altura: 4,
+                  profundidade: 30,
                   unidadeMedida: 1,
                 },
                 actionEstoque: "T",
@@ -877,8 +882,8 @@ export default function Home() {
           marca: nomeLoja,
           descricaoComplementar: descricaoProduto,
           dimensoes: {
-            largura: 10,
-            altura: 11,
+            largura: 22,
+            altura: 4,
             profundidade: 16,
             unidadeMedida: 1,
           },
@@ -1010,12 +1015,7 @@ export default function Home() {
       "Código Pai": row.codigo_pai,
       "Código Integração": parseFloat("0"),
       "Grupo de produtos": row.grupo_de_produtos,
-      Marca:
-        loja === ""
-          ? "Brk"
-          : (loja === "agro" && "Brk Agro") ||
-            (loja === "fishing" && "Brk Fishing") ||
-            (loja === "motors" && "Brk Motors"),
+      Marca: loja === 'Brk' && 'Brk' || loja === 'agro' && 'Brk Agro' || loja === 'fishing' && 'Brk Fishing' || loja === 'motors' && 'Brk Motors',
       CEST: "28.038.00",
       Volumes: parseFloat("1"),
       "Descrição Curta": row.descricao_curta,
