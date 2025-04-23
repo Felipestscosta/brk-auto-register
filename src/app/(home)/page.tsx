@@ -171,7 +171,7 @@ export default function Home() {
   const [tipoCadastro, setTipoCadastro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [usaEan, setUsaEan] = useState(false);
-  const [loja, setLoja] = useState("");
+  const [loja, setLoja] = useState("Brk");
   const [data, setData] = useState<any[]>([]);
   const [titulos, setTitulos] = useState<string[]>([]);
 
@@ -445,22 +445,7 @@ export default function Home() {
             }
 
             //Define a descrição de acordo com a loja
-            let descricaoProdutoMasculino =
-              (loja === "agro" &&
-                descricaoCamisaPorLoja.agro.replace(
-                  "[titulo-produto]",
-                  tituloProdutoMasculino
-                )) ||
-              (loja === "fishing" &&
-                descricaoCamisaPorLoja.fishing.replace(
-                  "[titulo-produto]",
-                  tituloProdutoMasculino
-                )) ||
-              (loja === "motors" &&
-                descricaoCamisaPorLoja.motors.replace(
-                  "[titulo-produto]",
-                  tituloProdutoMasculino
-                ));
+            let descricaoProdutoMasculino = '';
 
             let imagensConcatenadasMasculinas =
               imagensMasculinas && imagensMasculinas.length > 0
@@ -542,9 +527,9 @@ export default function Home() {
                 freteGratis: false,
                 descricaoComplementar: descricaoProduto,
                 dimensoes: {
-                  largura: 10,
-                  altura: 11,
-                  profundidade: 16,
+                  largura: 22,
+                  altura: 4,
+                  profundidade: 30,
                   unidadeMedida: 1,
                 },
                 actionEstoque: "T",
@@ -600,22 +585,7 @@ export default function Home() {
             }
 
             //Define a descrição de acordo com a loja
-            let descricaoProdutoFeminino =
-              (loja === "agro" &&
-                descricaoCamisaPorLoja.agro.replace(
-                  "[titulo-produto]",
-                  tituloProdutoFeminino
-                )) ||
-              (loja === "fishing" &&
-                descricaoCamisaPorLoja.fishing.replace(
-                  "[titulo-produto]",
-                  tituloProdutoFeminino
-                )) ||
-              (loja === "motors" &&
-                descricaoCamisaPorLoja.motors.replace(
-                  "[titulo-produto]",
-                  tituloProdutoFeminino
-                ));
+            let descricaoProdutoFeminino = '';
 
             let imagensConcatenadasFemininas =
               imagensFemininas && imagensFemininas.length > 0
@@ -697,9 +667,9 @@ export default function Home() {
                 marca: nomeLoja,
                 descricaoComplementar: "Descrição complementar",
                 dimensoes: {
-                  largura: 10,
-                  altura: 11,
-                  profundidade: 16,
+                  largura: 22,
+                  altura: 4,
+                  profundidade: 30,
                   unidadeMedida: 1,
                 },
                 actionEstoque: "T",
@@ -755,22 +725,7 @@ export default function Home() {
             }
 
             //Define a descrição de acordo com a loja
-            let descricaoProdutoInfantil =
-              (loja === "agro" &&
-                descricaoCamisaPorLoja.agro.replace(
-                  "[titulo-produto]",
-                  tituloProdutoInfantil
-                )) ||
-              (loja === "fishing" &&
-                descricaoCamisaPorLoja.fishing.replace(
-                  "[titulo-produto]",
-                  tituloProdutoInfantil
-                )) ||
-              (loja === "motors" &&
-                descricaoCamisaPorLoja.motors.replace(
-                  "[titulo-produto]",
-                  tituloProdutoInfantil
-                ));
+            let descricaoProdutoInfantil = '';
 
             let imagensConcatenadasInfantis =
               imagensInfantis && imagensInfantis.length > 0
