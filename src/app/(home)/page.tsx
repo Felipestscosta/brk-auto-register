@@ -511,7 +511,7 @@ export default function Home() {
                 codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
                   item.sigla_camisa
                 }`,
-                descricao: `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}`, //Título
+                descricao: dadosFormulario.cor_modelo_all ? `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}` : `Tamanho:${item.nome}`, //Título
                 estoque: "1000",
                 preco: preco,
                 produto_variacao: "Variação",
@@ -666,7 +666,7 @@ export default function Home() {
                 codigo: `${dadosFormulario.codigo.toLocaleUpperCase()}${
                   item.sigla_camisa
                 }`,
-                descricao: `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}`,
+                descricao: dadosFormulario.cor_modelo_all ? `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}` : `Tamanho:${item.nome}`,
                 estoque: "1000",
                 preco: preco,
                 produto_variacao: "Variação",
@@ -821,7 +821,7 @@ export default function Home() {
                   item.sigla_camisa
                 }`,
                 marca: loja,
-                descricao: `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}`,
+                descricao: dadosFormulario.cor_modelo_all ? `Cor:${dadosFormulario.cor_modelo_all};Tamanho:${item.nome}` : `Tamanho:${item.nome}`,
                 estoque: "1000",
                 preco: preco,
                 produto_variacao: "Variação",
